@@ -1,0 +1,172 @@
+name: securyflex_app
+description: "SecuryFlex MVP - Security Job Marketplace"
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  font_awesome_flutter: ^10.8.0
+  flutter_rating_bar: ^4.0.1
+  intl: ^0.20.2
+  animations: ^2.0.11
+  vector_math: ^2.1.4
+  firebase_core: ^4.0.0
+  cloud_firestore: ^6.0.0
+  firebase_storage: ^13.0.0
+  firebase_messaging: ^16.0.0
+  firebase_auth: ^6.0.0
+  firebase_analytics: ^12.0.0
+  flutter_local_notifications: ^18.0.1
+  shared_preferences: ^2.3.4
+  flutter_bloc: ^9.1.1
+  bloc: ^9.0.0
+  image_picker: ^1.1.2
+  sqflite: ^2.4.1
+  path: ^1.9.1
+  crypto: ^3.0.6
+  cached_network_image: ^3.4.1
+  photo_view: ^0.15.0
+  url_launcher: ^6.3.2
+  permission_handler: ^12.0.1
+  equatable: ^2.0.7
+  image: ^4.5.4
+  csv: ^6.0.0
+  fl_chart: ^1.0.0
+  http: ^1.2.2
+  pointycastle: ^3.9.1
+  local_auth: ^2.3.0
+  local_auth_android: ^1.0.38
+  local_auth_darwin: ^1.4.1
+  otp: ^3.1.4
+  path_provider: ^2.1.2
+  qr_flutter: ^4.1.0
+  google_maps_flutter: ^2.10.0
+  geolocator: ^14.0.2
+  geocoding: ^3.0.0
+  timezone: ^0.9.4
+  googleapis: ^14.0.0
+  googleapis_auth: ^1.6.0
+  flutter_calendar_carousel: ^2.4.3
+  table_calendar: ^3.1.2
+  workmanager: ^0.9.0
+  
+  # Payment Processing Dependencies
+  stripe_platform_interface: ^11.0.0
+  dio: ^5.4.3+1
+  xml: ^6.5.0
+  pdf: ^3.11.0
+  printing: ^5.13.2
+  iban: ^1.0.1
+  uuid: ^4.4.2
+  dart_jsonwebtoken: ^2.14.0
+  encrypt: ^5.0.3
+  flutter_secure_storage: ^9.2.2
+  
+  # Privacy and GDPR Compliance Dependencies
+  share_plus: ^10.0.0
+  file_picker: ^10.2.3
+  archive: ^4.0.7
+  dotted_border: ^3.1.0
+  percent_indicator: ^4.2.5
+
+  # Navigation and Routing (GoRouter Migration)
+  go_router: ^14.2.7
+  get_it: ^8.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.4
+  mockito: ^5.4.4
+  build_runner: ^2.4.7
+  sqflite_common_ffi: ^2.3.6
+  bloc_test: ^10.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/hotel/
+    - assets/fitness_app/
+    - assets/design_course/
+    - assets/images/
+    - assets/security/
+    - assets/jobs/
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: WorkSans
+      fonts:
+        - asset: assets/fonts/WorkSans-Regular.ttf
+        - asset: assets/fonts/WorkSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/WorkSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/WorkSans-Bold.ttf
+          weight: 700
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Bold.ttf
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 400
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package

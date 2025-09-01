@@ -1,0 +1,172 @@
+// Firestore Security Rules for Team Management Collections
+// Add these rules to your existing firestore.rules file
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Team Status Collection - Company-level team overview data
+    match /team_status/{companyId} {
+      // Allow read/write for authenticated company users and admins
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && request.auth.token.companyId == companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to read their company's team status
+      allow read: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        request.auth.token.companyId == companyId;
+    }
+    
+    // Guard Locations Collection - Real-time guard location and status
+    match /guard_locations/{guardId} {
+      // Allow company to read/write their guards' locations
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && 
+         resource.data.companyId == request.auth.token.companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to update their own location and status
+      allow read, write: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        request.auth.uid == guardId;
+      
+      // Validate required fields on create/update
+      allow create, update: if request.auth != null && 
+        request.resource.data.keys().hasAll(['guardId', 'guardName', 'lastUpdate', 'status', 'companyId']) &&
+        request.resource.data.guardId is string &&
+        request.resource.data.guardName is string &&
+        request.resource.data.lastUpdate is timestamp &&
+        request.resource.data.status in ['available', 'onDuty', 'busy', 'unavailable'] &&
+        request.resource.data.companyId is string;
+    }
+    
+    // Coverage Gaps Collection - Scheduling gaps and alerts
+    match /coverage_gaps/{gapId} {
+      // Allow company to read/write their coverage gaps
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && 
+         resource.data.companyId == request.auth.token.companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to read coverage gaps for their company
+      allow read: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        resource.data.companyId == request.auth.token.companyId;
+      
+      // Validate required fields on create/update
+      allow create, update: if request.auth != null && 
+        request.resource.data.keys().hasAll(['gapId', 'companyId', 'startTime', 'endTime', 'location', 'severity', 'createdAt']) &&
+        request.resource.data.gapId is string &&
+        request.resource.data.companyId is string &&
+        request.resource.data.startTime is timestamp &&
+        request.resource.data.endTime is timestamp &&
+        request.resource.data.location is string &&
+        request.resource.data.severity in ['low', 'medium', 'high', 'critical'] &&
+        request.resource.data.createdAt is timestamp;
+    }
+    
+    // Team Analytics Collection - Performance metrics and KPIs
+    match /team_analytics/{companyId} {
+      // Allow company to read/write their analytics
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && request.auth.token.companyId == companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to read their company's analytics (limited)
+      allow read: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        request.auth.token.companyId == companyId;
+    }
+    
+    // Emergency Alerts Collection - Critical alerts and notifications
+    match /emergency_alerts/{alertId} {
+      // Allow company to create/read/update emergency alerts
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && 
+         resource.data.companyId == request.auth.token.companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to read and respond to emergency alerts for their company
+      allow read, update: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        resource.data.companyId == request.auth.token.companyId;
+      
+      // Validate emergency alert structure
+      allow create, update: if request.auth != null && 
+        request.resource.data.keys().hasAll(['alertId', 'companyId', 'alertType', 'severity', 'createdAt']) &&
+        request.resource.data.alertId is string &&
+        request.resource.data.companyId is string &&
+        request.resource.data.alertType in ['coverage_gap', 'guard_emergency', 'system_alert'] &&
+        request.resource.data.severity in ['low', 'medium', 'high', 'critical'] &&
+        request.resource.data.createdAt is timestamp;
+    }
+    
+    // Guard Schedules Collection - Shift planning and scheduling
+    match /guard_schedules/{scheduleId} {
+      // Allow company to manage schedules
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && 
+         resource.data.companyId == request.auth.token.companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to read their own schedules
+      allow read: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        (resource.data.guardId == request.auth.uid || 
+         resource.data.companyId == request.auth.token.companyId);
+      
+      // Validate schedule structure
+      allow create, update: if request.auth != null && 
+        request.resource.data.keys().hasAll(['scheduleId', 'companyId', 'guardId', 'startTime', 'endTime']) &&
+        request.resource.data.scheduleId is string &&
+        request.resource.data.companyId is string &&
+        request.resource.data.guardId is string &&
+        request.resource.data.startTime is timestamp &&
+        request.resource.data.endTime is timestamp;
+    }
+    
+    // Training Records Collection - Guard training and compliance
+    match /training_records/{recordId} {
+      // Allow company to manage training records
+      allow read, write: if request.auth != null && 
+        (request.auth.token.userType == 'company' && 
+         resource.data.companyId == request.auth.token.companyId) ||
+        request.auth.token.userType == 'admin';
+      
+      // Allow guards to read their own training records
+      allow read: if request.auth != null && 
+        request.auth.token.userType == 'guard' && 
+        resource.data.guardId == request.auth.uid;
+      
+      // Validate training record structure
+      allow create, update: if request.auth != null && 
+        request.resource.data.keys().hasAll(['recordId', 'companyId', 'guardId', 'trainingType', 'completedAt']) &&
+        request.resource.data.recordId is string &&
+        request.resource.data.companyId is string &&
+        request.resource.data.guardId is string &&
+        request.resource.data.trainingType is string &&
+        request.resource.data.completedAt is timestamp;
+    }
+  }
+}
+
+// Additional helper functions for team management
+function isCompanyUser(companyId) {
+  return request.auth != null && 
+         request.auth.token.userType == 'company' && 
+         request.auth.token.companyId == companyId;
+}
+
+function isGuardUser() {
+  return request.auth != null && request.auth.token.userType == 'guard';
+}
+
+function isAdminUser() {
+  return request.auth != null && request.auth.token.userType == 'admin';
+}
+
+function isAuthorizedForCompany(companyId) {
+  return isCompanyUser(companyId) || isAdminUser() || 
+         (isGuardUser() && request.auth.token.companyId == companyId);
+}

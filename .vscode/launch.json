@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter: Debug",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "mcp": {
+        "servers": {
+          "firebase": {
+            "command": "npx",
+            "args": ["-y", "firebase-tools@latest", "experimental:mcp"],
+            "env": {
+              "FIREBASE_PROJECT": "securyflex-dev"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Flutter: Release",
+      "type": "dart", 
+      "request": "launch",
+      "program": "lib/main.dart",
+      "flutterMode": "release"
+    }
+  ]
+}

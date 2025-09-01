@@ -1,0 +1,18 @@
+{
+  "name": "securyflex-firestore-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for SecuryFlex Firestore database management",
+  "main": "init_firestore_production.js",
+  "scripts": {
+    "init-production": "node init_firestore_production.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "SecuryFlex Team",
+  "license": "MIT"
+}

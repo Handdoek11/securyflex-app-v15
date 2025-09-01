@@ -1,0 +1,677 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:securyflex_app/auth/services/wpbr_verification_service.dart';
+import 'package:securyflex_app/auth/models/enhanced_auth_models.dart';
+import 'package:securyflex_app/auth/auth_service.dart';
+
+/// Mock File for testing document operations
+class MockFile extends Mock implements File {}
+
+/// Mock Directory for testing file system operations
+class MockDirectory extends Mock implements Directory {}
+
+/// Mock ML Kit text recognition service
+class MockMLKitTextRecognition extends Mock {}
+
+/// Mock HTTP client for API calls
+class MockHttpClient extends Mock implements HttpClient {}
+
+/// Mock WPBR database service
+class MockWPBRDatabaseService extends Mock {}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('WPBR Verification Service Tests', () {
+    late MockFile mockFile;
+    late MockDirectory mockDirectory;
+
+    setUp(() {
+      mockFile = MockFile();
+      mockDirectory = MockDirectory();
+      
+      // Default mock setups
+      when(() => mockFile.existsSync()).thenReturn(true);
+      when(() => mockFile.lengthSync()).thenReturn(1024 * 1024); // 1MB
+    });
+
+    group('WPBR Number Validation', () {
+      test('should validate correct WPBR number formats', () {
+        // Valid WPBR numbers
+        expect(WPBRVerificationService.isValidWPBRNumber('WPBR-123456'), isTrue);
+        expect(WPBRVerificationService.isValidWPBRNumber('WPBR123456'), isTrue);
+        expect(WPBRVerificationService.isValidWPBRNumber('wpbr-789012'), isTrue);
+        expect(WPBRVerificationService.isValidWPBRNumber('123456'), isTrue); // Numbers only
+        
+        // Invalid WPBR numbers
+        expect(WPBRVerificationService.isValidWPBRNumber(''), isFalse);
+        expect(WPBRVerificationService.isValidWPBRNumber('WPBR'), isFalse);
+        expect(WPBRVerificationService.isValidWPBRNumber('12345'), isFalse); // Too short
+        expect(WPBRVerificationService.isValidWPBRNumber('1234567'), isFalse); // Too long
+        expect(WPBRVerificationService.isValidWPBRNumber('ABCDEF'), isFalse); // No numbers
+      });
+
+      test('should normalize WPBR numbers consistently', () {
+        expect(WPBRVerificationService.normalizeWPBRNumber('WPBR-123456'), equals('123456'));
+        expect(WPBRVerificationService.normalizeWPBRNumber('wpbr123456'), equals('123456'));
+        expect(WPBRVerificationService.normalizeWPBRNumber('WPBR 789012'), equals('789012'));
+        expect(WPBRVerificationService.normalizeWPBRNumber('123456'), equals('123456'));
+      });
+
+      test('should generate WPBR display format', () {
+        expect(WPBRVerificationService.formatWPBRForDisplay('123456'), equals('WPBR-123456'));
+        expect(WPBRVerificationService.formatWPBRForDisplay('WPBR-123456'), equals('WPBR-123456'));
+        expect(WPBRVerificationService.formatWPBRForDisplay('wpbr789012'), equals('WPBR-789012'));
+      });
+    });
+
+    group('Document File Validation', () {
+      test('should validate supported file types', () {
+        expect(WPBRVerificationService.isSupportedFileType('document.pdf'), isTrue);
+        expect(WPBRVerificationService.isSupportedFileType('scan.jpg'), isTrue);
+        expect(WPBRVerificationService.isSupportedFileType('image.jpeg'), isTrue);
+        expect(WPBRVerificationService.isSupportedFileType('photo.png'), isTrue);
+        
+        expect(WPBRVerificationService.isSupportedFileType('document.doc'), isFalse);
+        expect(WPBRVerificationService.isSupportedFileType('file.txt'), isFalse);
+        expect(WPBRVerificationService.isSupportedFileType('video.mp4'), isFalse);
+      });
+
+      test('should validate file size limits', () async {
+        when(() => mockFile.path).thenReturn('/path/to/document.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(5 * 1024 * 1024); // 5MB
+        
+        final result = await WPBRVerificationService.validateDocumentFile(mockFile);
+        expect(result.isValid, isTrue);
+        
+        // Test file too large
+        when(() => mockFile.lengthSync()).thenReturn(15 * 1024 * 1024); // 15MB
+        final resultTooLarge = await WPBRVerificationService.validateDocumentFile(mockFile);
+        expect(resultTooLarge.isValid, isFalse);
+        expect(resultTooLarge.errorCode, equals('FILE_TOO_LARGE'));
+      });
+
+      test('should validate file exists and is readable', () async {
+        when(() => mockFile.path).thenReturn('/path/to/document.pdf');
+        when(() => mockFile.existsSync()).thenReturn(false);
+        
+        final result = await WPBRVerificationService.validateDocumentFile(mockFile);
+        expect(result.isValid, isFalse);
+        expect(result.errorCode, equals('FILE_NOT_FOUND'));
+      });
+
+      test('should detect corrupted files', () async {
+        when(() => mockFile.path).thenReturn('/path/to/document.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(0); // Empty file
+        
+        final result = await WPBRVerificationService.validateDocumentFile(mockFile);
+        expect(result.isValid, isFalse);
+        expect(result.errorCode, equals('CORRUPTED_FILE'));
+      });
+
+      test('should validate file security', () async {
+        when(() => mockFile.path).thenReturn('/path/to/document.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        when(() => mockFile.readAsBytesSync()).thenReturn(Uint8List.fromList([
+          0x25, 0x50, 0x44, 0x46, // PDF header
+        ]));
+        
+        final result = await WPBRVerificationService.validateDocumentFile(mockFile);
+        expect(result.isValid, isTrue);
+        
+        // Test suspicious file content
+        when(() => mockFile.readAsBytesSync()).thenReturn(Uint8List.fromList([
+          0x4D, 0x5A, 0x90, 0x00, // Executable header
+        ]));
+        
+        final suspiciousResult = await WPBRVerificationService.validateDocumentFile(mockFile);
+        expect(suspiciousResult.isValid, isFalse);
+        expect(suspiciousResult.errorCode, equals('SUSPICIOUS_FILE_CONTENT'));
+      });
+    });
+
+    group('WPBR Certificate Verification', () {
+      test('should verify valid WPBR certificate', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/wpbr_certificate.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(2 * 1024 * 1024);
+        when(() => mockFile.existsSync()).thenReturn(true);
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+        );
+        
+        expect(result.isSuccess, isTrue);
+        expect(result.data, isNotNull);
+        expect(result.data!.wpbrNumber, equals(wpbrNumber));
+        expect(result.data!.isCurrentlyValid, isTrue);
+      });
+
+      test('should handle certificate not found in database', () async {
+        const wpbrNumber = '999999';
+        
+        final result = await WPBRVerificationService.verifyCertificate(wpbrNumber);
+        
+        expect(result.isSuccess, isFalse);
+        expect(result.errorCode, equals('CERTIFICATE_NOT_FOUND'));
+        expect(result.message, contains('niet gevonden'));
+      });
+
+      test('should detect expired certificates', () async {
+        const wpbrNumber = '123456';
+        
+        // Mock expired certificate data
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          checkExpiry: true,
+        );
+        
+        if (!result.isSuccess || !result.data!.isCurrentlyValid) {
+          expect(result.data?.isExpired, isTrue);
+          expect(result.message, contains('verlopen'));
+        }
+      });
+
+      test('should validate certificate authenticity', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/certificate.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        when(() => mockFile.existsSync()).thenReturn(true);
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+          performAuthenticityCheck: true,
+        );
+        
+        expect(result, isNotNull);
+        if (result.isSuccess) {
+          expect(result.data!.authenticityScore, greaterThan(0.5));
+          expect(result.data!.authenticityChecks, isNotEmpty);
+        }
+      });
+
+      test('should detect forged or tampered certificates', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/suspicious_certificate.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(512 * 1024);
+        when(() => mockFile.existsSync()).thenReturn(true);
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+          performAuthenticityCheck: true,
+          strictMode: true,
+        );
+        
+        if (!result.isSuccess || result.data?.authenticityScore < 0.7) {
+          expect(result.errorCode, anyOf([
+            'DOCUMENT_TAMPERED',
+            'AUTHENTICITY_FAILED',
+            'SUSPICIOUS_DOCUMENT'
+          ]));
+          expect(result.message, contains('verdacht'));
+        }
+      });
+
+      test('should extract text content from documents', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/text_certificate.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        when(() => mockFile.existsSync()).thenReturn(true);
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+          extractText: true,
+        );
+        
+        if (result.isSuccess) {
+          expect(result.data!.extractedText, isNotNull);
+          expect(result.data!.extractedText, isNotEmpty);
+          expect(result.data!.textExtractionConfidence, greaterThan(0.8));
+        }
+      });
+
+      test('should validate certificate holder information', () async {
+        const wpbrNumber = '123456';
+        const holderName = 'Jan de Vries';
+        const holderBSN = '123456789';
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          expectedHolderName: holderName,
+          expectedBSN: holderBSN,
+        );
+        
+        if (result.isSuccess) {
+          expect(result.data!.holderName, equals(holderName));
+          expect(result.data!.holderMatches, isTrue);
+        }
+      });
+    });
+
+    group('ML-Based Document Analysis', () {
+      test('should extract WPBR information using ML', () async {
+        when(() => mockFile.path).thenReturn('/path/to/ml_certificate.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(2 * 1024 * 1024);
+        
+        final mlResult = await WPBRVerificationService.analyzeDocumentWithML(mockFile);
+        
+        expect(mlResult, isNotNull);
+        expect(mlResult.detectedWPBRNumber, isNotNull);
+        expect(mlResult.confidence, greaterThan(0.0));
+        expect(mlResult.detectedFields, isNotEmpty);
+      });
+
+      test('should detect PII in documents', () async {
+        when(() => mockFile.path).thenReturn('/path/to/pii_certificate.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        
+        final piiResult = await WPBRVerificationService.detectPIIInDocument(mockFile);
+        
+        expect(piiResult, isNotNull);
+        expect(piiResult.foundPII, isA<bool>());
+        if (piiResult.foundPII) {
+          expect(piiResult.piiTypes, isNotEmpty);
+          expect(piiResult.redactionSuggestions, isNotEmpty);
+        }
+      });
+
+      test('should validate document layout and structure', () async {
+        when(() => mockFile.path).thenReturn('/path/to/structured_certificate.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        
+        final layoutResult = await WPBRVerificationService.validateDocumentLayout(mockFile);
+        
+        expect(layoutResult.isValidLayout, isA<bool>());
+        expect(layoutResult.layoutScore, isA<double>());
+        expect(layoutResult.structuralElements, isNotNull);
+      });
+
+      test('should detect document quality issues', () async {
+        when(() => mockFile.path).thenReturn('/path/to/poor_quality.jpg');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(512 * 1024);
+        
+        final qualityResult = await WPBRVerificationService.assessDocumentQuality(mockFile);
+        
+        expect(qualityResult.qualityScore, isA<double>());
+        expect(qualityResult.qualityIssues, isA<List>());
+        expect(qualityResult.improvementSuggestions, isA<List>());
+        
+        if (qualityResult.qualityScore < 0.6) {
+          expect(qualityResult.qualityIssues, isNotEmpty);
+          expect(qualityResult.qualityIssues, anyElement(anyOf([
+            'BLURRY_IMAGE',
+            'LOW_RESOLUTION',
+            'POOR_LIGHTING',
+            'SKEWED_DOCUMENT'
+          ])));
+        }
+      });
+    });
+
+    group('GDPR and Privacy Compliance', () {
+      test('should handle GDPR consent for document processing', () async {
+        const wpbrNumber = '123456';
+        const userConsent = 'explicit_consent_2023_01_01';
+        
+        when(() => mockFile.path).thenReturn('/path/to/certificate.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+          gdprConsent: userConsent,
+        );
+        
+        expect(result.isSuccess, isTrue);
+        expect(result.data!.gdprConsent, equals(userConsent));
+        expect(result.data!.processingLegalBasis, isNotNull);
+      });
+
+      test('should implement data minimization principles', () async {
+        const wpbrNumber = '123456';
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          dataMinimization: true,
+        );
+        
+        if (result.isSuccess) {
+          // Should not include unnecessary personal data
+          expect(result.data!.minimizedData, isTrue);
+          expect(result.data!.retainedFields, isNotEmpty);
+          expect(result.data!.excludedFields, isNotEmpty);
+        }
+      });
+
+      test('should provide data retention information', () async {
+        const wpbrNumber = '123456';
+        
+        final result = await WPBRVerificationService.verifyCertificate(wpbrNumber);
+        
+        if (result.isSuccess) {
+          expect(result.data!.retentionPeriod, isNotNull);
+          expect(result.data!.deletionDate, isNotNull);
+          expect(result.data!.retentionReason, isNotEmpty);
+        }
+      });
+
+      test('should support right to be forgotten', () async {
+        const wpbrNumber = '123456';
+        
+        final deletionResult = await WPBRVerificationService.deletePersonalData(wpbrNumber);
+        
+        expect(deletionResult.success, isTrue);
+        expect(deletionResult.deletedFields, isNotEmpty);
+        expect(deletionResult.retainedFieldsReason, isNotNull);
+        expect(deletionResult.confirmationId, isNotNull);
+      });
+    });
+
+    group('Certificate Status and Validity', () {
+      test('should check certificate against revocation lists', () async {
+        const wpbrNumber = '123456';
+        
+        final revocationResult = await WPBRVerificationService.checkRevocationStatus(wpbrNumber);
+        
+        expect(revocationResult.isRevoked, isA<bool>());
+        expect(revocationResult.revocationDate, isA<DateTime?>());
+        expect(revocationResult.revocationReason, isA<String?>());
+        expect(revocationResult.lastChecked, isNotNull);
+      });
+
+      test('should validate against current WPBR standards', () async {
+        const wpbrNumber = '123456';
+        
+        final standardsResult = await WPBRVerificationService.validateAgainstCurrentStandards(wpbrNumber);
+        
+        expect(standardsResult.meetsCurrentStandards, isA<bool>());
+        expect(standardsResult.standardsVersion, isNotNull);
+        expect(standardsResult.complianceIssues, isA<List>());
+      });
+
+      test('should provide certificate renewal information', () async {
+        const wpbrNumber = '123456';
+        
+        final result = await WPBRVerificationService.verifyCertificate(wpbrNumber);
+        
+        if (result.isSuccess) {
+          expect(result.data!.renewalRequired, isA<bool>());
+          expect(result.data!.renewalDeadline, isA<DateTime?>());
+          if (result.data!.renewalRequired) {
+            expect(result.data!.renewalInstructions, isNotEmpty);
+          }
+        }
+      });
+
+      test('should track certificate usage and validity periods', () async {
+        const wpbrNumber = '123456';
+        
+        final usageResult = await WPBRVerificationService.getCertificateUsageHistory(wpbrNumber);
+        
+        expect(usageResult.usageCount, isA<int>());
+        expect(usageResult.lastUsed, isA<DateTime?>());
+        expect(usageResult.validityPeriods, isA<List>());
+        expect(usageResult.activeStatus, isA<bool>());
+      });
+    });
+
+    group('Error Handling and Edge Cases', () {
+      test('should handle network connectivity issues', () async {
+        const wpbrNumber = '123456';
+        
+        // Mock network failure
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          networkTimeout: Duration(milliseconds: 100),
+        );
+        
+        if (!result.isSuccess) {
+          expect(result.errorCode, anyOf([
+            'NETWORK_ERROR',
+            'TIMEOUT_ERROR',
+            'SERVICE_UNAVAILABLE'
+          ]));
+          expect(result.message, contains('netwerk'));
+        }
+      });
+
+      test('should handle API rate limiting', () async {
+        // Simulate multiple rapid requests
+        final futures = <Future<WPBRVerificationResult>>[];
+        
+        for (int i = 0; i < 10; i++) {
+          futures.add(WPBRVerificationService.verifyCertificate('12345$i'));
+        }
+        
+        final results = await Future.wait(futures);
+        
+        // Some requests should be rate limited
+        final rateLimitedResults = results.where((r) => 
+          !r.isSuccess && r.errorCode == 'RATE_LIMITED'
+        ).toList();
+        
+        if (rateLimitedResults.isNotEmpty) {
+          expect(rateLimitedResults.first.message, contains('te veel verzoeken'));
+        }
+      });
+
+      test('should handle corrupted document gracefully', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/corrupted.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(1024);
+        when(() => mockFile.readAsBytesSync()).thenThrow(FileSystemException('Corrupted file'));
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+        );
+        
+        expect(result.isSuccess, isFalse);
+        expect(result.errorCode, equals('DOCUMENT_CORRUPTED'));
+        expect(result.message, contains('beschadigd'));
+      });
+
+      test('should handle insufficient storage space', () async {
+        when(() => mockFile.path).thenReturn('/path/to/large_document.pdf');
+        when(() => mockFile.lengthSync()).thenReturn(50 * 1024 * 1024); // 50MB
+        
+        final result = await WPBRVerificationService.validateDocumentFile(mockFile);
+        
+        expect(result.isValid, isFalse);
+        expect(result.errorCode, anyOf([
+          'INSUFFICIENT_STORAGE',
+          'FILE_TOO_LARGE'
+        ]));
+      });
+
+      test('should handle malformed WPBR numbers gracefully', () async {
+        final malformedNumbers = [
+          '', // Empty
+          'INVALID', // Non-numeric
+          '12', // Too short
+          '1234567890', // Too long
+          'WPBR-ABCDEF', // Invalid characters
+        ];
+        
+        for (final invalidNumber in malformedNumbers) {
+          expect(
+            () => WPBRVerificationService.normalizeWPBRNumber(invalidNumber),
+            throwsA(isA<ArgumentError>()),
+          );
+        }
+      });
+    });
+
+    group('Performance and Optimization', () {
+      test('should process documents efficiently', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/efficient_test.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(2 * 1024 * 1024);
+        
+        final stopwatch = Stopwatch()..start();
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+          performanceMode: true,
+        );
+        
+        stopwatch.stop();
+        
+        expect(stopwatch.elapsedMilliseconds, lessThan(5000)); // 5 seconds max
+        if (result.isSuccess) {
+          expect(result.data!.processingTime, lessThan(5000));
+        }
+      });
+
+      test('should implement caching for repeated verifications', () async {
+        const wpbrNumber = '123456';
+        
+        // First verification
+        final result1 = await WPBRVerificationService.verifyCertificate(wpbrNumber);
+        
+        // Second verification should use cache
+        final result2 = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          useCache: true,
+        );
+        
+        if (result1.isSuccess && result2.isSuccess) {
+          expect(result2.data!.fromCache, isTrue);
+          expect(result2.data!.processingTime, lessThan(result1.data!.processingTime));
+        }
+      });
+
+      test('should optimize memory usage for large documents', () async {
+        const wpbrNumber = '123456';
+        
+        when(() => mockFile.path).thenReturn('/path/to/large_document.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(8 * 1024 * 1024); // 8MB
+        
+        final result = await WPBRVerificationService.verifyCertificate(
+          wpbrNumber,
+          certificateDocument: mockFile,
+          memoryOptimized: true,
+        );
+        
+        if (result.isSuccess) {
+          expect(result.data!.memoryUsage, lessThan(50 * 1024 * 1024)); // 50MB max
+          expect(result.data!.streamProcessing, isTrue);
+        }
+      });
+
+      test('should handle batch processing efficiently', () async {
+        final wpbrNumbers = ['123456', '234567', '345678', '456789', '567890'];
+        
+        final batchResult = await WPBRVerificationService.verifyBatch(wpbrNumbers);
+        
+        expect(batchResult.results, hasLength(5));
+        expect(batchResult.successCount, isA<int>());
+        expect(batchResult.failureCount, isA<int>());
+        expect(batchResult.totalProcessingTime, isA<int>());
+        expect(batchResult.averageTimePerCertificate, isA<double>());
+      });
+    });
+
+    group('Dutch Language and Localization', () {
+      test('should provide Dutch error messages', () {
+        final dutchMessages = WPBRVerificationService.getDutchErrorMessages();
+        
+        expect(dutchMessages['CERTIFICATE_NOT_FOUND'], contains('certificaat niet gevonden'));
+        expect(dutchMessages['CERTIFICATE_EXPIRED'], contains('certificaat verlopen'));
+        expect(dutchMessages['DOCUMENT_CORRUPTED'], contains('document beschadigd'));
+        expect(dutchMessages['AUTHENTICITY_FAILED'], contains('echtheid verificatie mislukt'));
+        expect(dutchMessages['SUSPICIOUS_DOCUMENT'], contains('verdacht document'));
+      });
+
+      test('should format dates according to Dutch conventions', () {
+        final testDate = DateTime(2023, 12, 31);
+        final formattedDate = WPBRVerificationService.formatDateDutch(testDate);
+        
+        expect(formattedDate, equals('31 december 2023'));
+      });
+
+      test('should provide Dutch status descriptions', () {
+        final wpbrData = WPBRCertificateData(
+          wpbrNumber: '123456',
+          isCurrentlyValid: true,
+          expiryDate: DateTime(2024, 12, 31),
+          holderName: 'Jan de Vries',
+        );
+        
+        final statusDutch = WPBRVerificationService.getStatusDescriptionDutch(wpbrData);
+        expect(statusDutch, contains('geldig'));
+        expect(statusDutch, contains('december 2024'));
+      });
+    });
+
+    group('Security and Fraud Prevention', () {
+      test('should detect suspicious verification patterns', () async {
+        const userId = 'test-user-123';
+        const wpbrNumber = '123456';
+        
+        // Simulate multiple rapid verification attempts
+        for (int i = 0; i < 10; i++) {
+          await WPBRVerificationService.logVerificationAttempt(
+            userId: userId,
+            wpbrNumber: wpbrNumber,
+            timestamp: DateTime.now(),
+            success: i % 2 == 0,
+          );
+        }
+        
+        final securityAnalysis = await WPBRVerificationService.analyzeVerificationPattern(userId);
+        
+        expect(securityAnalysis.isSuspicious, isA<bool>());
+        expect(securityAnalysis.riskScore, isA<double>());
+        expect(securityAnalysis.suspiciousIndicators, isA<List>());
+      });
+
+      test('should implement certificate fingerprinting', () async {
+        when(() => mockFile.path).thenReturn('/path/to/certificate.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        
+        final fingerprint = await WPBRVerificationService.generateDocumentFingerprint(mockFile);
+        
+        expect(fingerprint, isNotNull);
+        expect(fingerprint.length, equals(64)); // SHA-256 hex string
+        expect(RegExp(r'^[a-f0-9]+$').hasMatch(fingerprint), isTrue);
+      });
+
+      test('should validate document metadata for tampering', () async {
+        when(() => mockFile.path).thenReturn('/path/to/metadata_test.pdf');
+        when(() => mockFile.existsSync()).thenReturn(true);
+        when(() => mockFile.lengthSync()).thenReturn(1024 * 1024);
+        
+        final metadataResult = await WPBRVerificationService.validateDocumentMetadata(mockFile);
+        
+        expect(metadataResult.hasSuspiciousMetadata, isA<bool>());
+        expect(metadataResult.creationDate, isA<DateTime?>());
+        expect(metadataResult.modificationHistory, isA<List>());
+        expect(metadataResult.tamperingIndicators, isA<List>());
+      });
+    });
+  });
+}

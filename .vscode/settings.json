@@ -1,0 +1,28 @@
+{
+  "mcp.servers": {
+    "firebase-securyflex": {
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "experimental:mcp"],
+      "env": {
+        "FIREBASE_PROJECT": "securyflex-dev"
+      }
+    },
+    "firebase-community": {
+      "command": "npx",
+      "args": ["-y", "@gannonh/firebase-mcp"],
+      "env": {
+        "SERVICE_ACCOUNT_KEY_PATH": "C:\\Users\\svdwe\\Documents\\securyflex-service-account.json",
+        "FIREBASE_STORAGE_BUCKET": "securyflex-dev.firebasestorage.app"
+      }
+    }
+  },
+  "mcp.logging": {
+    "level": "info",
+    "file": ".vscode/mcp.log"
+  },
+  "mcp.autostart": true,
+  "files.associations": {
+    "*.dart": "dart"
+  },
+  "dart.flutterSdkPath": "C:\\flutter"
+}

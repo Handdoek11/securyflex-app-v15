@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "1043280489748",
+    "project_id": "securyflex-dev",
+    "storage_bucket": "securyflex-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1043280489748:android:2e4a4563e047008f486601",
+        "android_client_info": {
+          "package_name": "com.example.securyflex"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCs09ATGwyR1QxMeG-2AtPezzX97zQYgEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1043280489748:android:528cb22920e84820486601",
+        "android_client_info": {
+          "package_name": "com.example.securyflex_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCs09ATGwyR1QxMeG-2AtPezzX97zQYgEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1043280489748:android:e0e822d547a013ab486601",
+        "android_client_info": {
+          "package_name": "dev.hyderali.trippo_user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCs09ATGwyR1QxMeG-2AtPezzX97zQYgEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

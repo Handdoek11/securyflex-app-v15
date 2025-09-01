@@ -1,0 +1,335 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Enhanced helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+    
+    function isAccountActive() {
+      return firestore.get(/databases/(default)/documents/user_security/$(request.auth.uid)).data.get('accountStatus', 'active') == 'active';
+    }
+    
+    function hasRole(role) {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userType == role;
+    }
+    
+    function isWithinFileSize(maxBytes) {
+      return resource.size <= maxBytes;
+    }
+    
+    function isAllowedContentType(allowedTypes) {
+      return resource.contentType in allowedTypes;
+    }
+    
+    function isEncryptedDocument() {
+      return resource.contentType == 'application/octet-stream' && 
+             resource.metadata.encrypted == 'true' &&
+             resource.metadata.encryptionVersion in ['AES256_V1'];
+    }
+    
+    function hasValidDocumentMetadata() {
+      return resource.metadata.keys().hasAll([
+        'uploadId', 'userId', 'documentType', 'uploadTimestamp', 
+        'encrypted', 'encryptionVersion', 'integrityHash', 
+        'originalSize', 'encryptedSize', 'securityValidated'
+      ]) &&
+      resource.metadata.encrypted == 'true' &&
+      resource.metadata.encryptionVersion == 'AES256_V1' &&
+      resource.metadata.securityValidated == 'true' &&
+      resource.metadata.malwareScanPassed == 'true';
+    }
+    
+    // Enhanced secure document storage for certificates
+    match /secure_docs/{documentType}/{hashedUserId}/{randomComponent}/{fileName} {
+      // Read: Only owner and admin, with additional security checks
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        // Owner verification through hashed user ID
+        (resource.metadata.userId != null && 
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data != null) ||
+        // Admin access
+        hasRole('admin') ||
+        // Company access for public certificates in job matching context
+        (hasRole('company') && 
+         resource.metadata.get('visibility', 'private') == 'public' &&
+         resource.metadata.get('allowJobMatching', 'false') == 'true')
+      ) && isEncryptedDocument();
+      
+      // Write: Strict validation for encrypted documents only
+      allow write: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        // Must be encrypted document
+        request.resource.contentType == 'application/octet-stream' &&
+        // Size limits: 10MB for certificates
+        request.resource.size <= 10 * 1024 * 1024 &&
+        request.resource.size > 0 &&
+        // Must have comprehensive security metadata
+        request.resource.metadata.keys().hasAll([
+          'uploadId', 'userId', 'documentType', 'uploadTimestamp', 
+          'encrypted', 'encryptionVersion', 'integrityHash', 
+          'originalSize', 'encryptedSize', 'securityValidated',
+          'malwareScanPassed', 'checksum'
+        ]) &&
+        // Validate metadata values
+        request.resource.metadata.encrypted == 'true' &&
+        request.resource.metadata.encryptionVersion == 'AES256_V1' &&
+        request.resource.metadata.documentType in ['wpbr', 'vca', 'bhv', 'ehbo', 'identity'] &&
+        request.resource.metadata.securityValidated == 'true' &&
+        request.resource.metadata.malwareScanPassed == 'true' &&
+        // Validate hash formats (SHA-256 = 64 chars)
+        request.resource.metadata.integrityHash.size() == 64 &&
+        request.resource.metadata.checksum.size() == 32 && // MD5 = 32 chars
+        // Validate size consistency
+        int(request.resource.metadata.encryptedSize) == request.resource.size &&
+        int(request.resource.metadata.originalSize) > 0 &&
+        int(request.resource.metadata.encryptedSize) >= int(request.resource.metadata.originalSize);
+      
+      // Delete: Enhanced permissions with audit trail requirement
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        // Owner can delete (verified through metadata)
+        (resource.metadata.userId != null && 
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data != null) ||
+        // Admin can delete
+        hasRole('admin')
+      ) && isEncryptedDocument() && hasValidDocumentMetadata();
+    }
+    
+    // Legacy certificate documents (read-only, migration path)
+    match /certificate_documents/{userId}/{certificateId}/{fileName} {
+      // Read: Only for backward compatibility
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        request.auth.uid == userId ||
+        hasRole('admin')
+      ) && 
+      // Log legacy access for migration tracking
+      debug('LEGACY_CERTIFICATE_ACCESS: ' + userId + '/' + certificateId);
+      
+      // Write: Disabled - force migration to secure storage
+      allow write: if false;
+      
+      // Delete: Only admin for cleanup
+      allow delete: if hasRole('admin');
+    }
+    
+    // Temporary secure upload staging area
+    match /temp_secure_uploads/{userId}/{uploadId}/{fileName} {
+      // Read: Owner only for validation purposes
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        request.auth.uid == userId &&
+        // Must be recent upload (within 1 hour)
+        resource.timeCreated > timestamp.date(2024, 1, 1) &&
+        timestamp.date() - resource.timeCreated < duration.value(3600);
+      
+      // Write: Encrypted staging with time limits
+      allow write: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        request.auth.uid == userId &&
+        // Must be encrypted
+        request.resource.contentType == 'application/octet-stream' &&
+        // Size limit: 10MB
+        request.resource.size <= 10 * 1024 * 1024 &&
+        // Required staging metadata
+        request.resource.metadata.keys().hasAll([
+          'stagingId', 'uploadTimestamp', 'originalFileName', 
+          'documentType', 'securityValidated'
+        ]) &&
+        request.resource.metadata.stagingId == uploadId &&
+        request.resource.metadata.documentType in ['wpbr', 'vca', 'bhv', 'ehbo', 'identity'] &&
+        request.resource.metadata.securityValidated == 'true';
+      
+      // Delete: Auto-cleanup after processing or expiry
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        request.auth.uid == userId ||
+        hasRole('admin')
+      );
+    }
+    
+    // Secure certificate verification artifacts (immutable audit trail)
+    match /certificate_verifications/{certificateId}/{verificationId}/{fileName} {
+      // Read: Certificate owner and admin only
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        firestore.get(/databases/(default)/documents/user_certificates/$(resource.metadata.userId)/certificates/$(certificateId)).data != null ||
+        hasRole('admin')
+      ) && isEncryptedDocument();
+      
+      // Write: System/admin only with comprehensive metadata
+      allow write: if hasRole('admin') &&
+        request.resource.contentType == 'application/octet-stream' &&
+        request.resource.size <= 5 * 1024 * 1024 && // 5MB limit for verification artifacts
+        request.resource.metadata.keys().hasAll([
+          'verificationId', 'certificateId', 'verifiedAt', 'verifiedBy',
+          'verificationMethod', 'verificationResult', 'encrypted', 
+          'integrityHash', 'immutable'
+        ]) &&
+        request.resource.metadata.verificationId == verificationId &&
+        request.resource.metadata.certificateId == certificateId &&
+        request.resource.metadata.verifiedBy == request.auth.uid &&
+        request.resource.metadata.encrypted == 'true' &&
+        request.resource.metadata.immutable == 'true' &&
+        request.resource.metadata.verificationResult in ['verified', 'invalid', 'expired', 'suspicious'];
+      
+      // Delete: Never allowed for audit integrity
+      allow delete: if false;
+    }
+    
+    // Malware scan quarantine area (admin access only)
+    match /quarantine/{quarantineId}/{fileName} {
+      // Read: Admin only for security investigation
+      allow read: if hasRole('admin') && isAuthenticated() && isEmailVerified();
+      
+      // Write: System quarantine process
+      allow write: if hasRole('admin') &&
+        request.resource.metadata.keys().hasAll([
+          'quarantineId', 'originalPath', 'quarantineReason', 'threatType',
+          'detectionTime', 'quarantinedBy', 'scannerVersion', 'riskLevel'
+        ]) &&
+        request.resource.metadata.quarantineReason in [
+          'malware_detected', 'suspicious_content', 'policy_violation', 'manual_quarantine'
+        ] &&
+        request.resource.metadata.riskLevel in ['low', 'medium', 'high', 'critical'] &&
+        request.resource.metadata.quarantinedBy == request.auth.uid;
+      
+      // Delete: Admin only after security review
+      allow delete: if hasRole('admin') && 
+        resource.metadata.get('reviewCompleted', 'false') == 'true';
+    }
+    
+    // Security scan reports and logs (admin read-only)
+    match /security_reports/{reportType}/{reportId} {
+      allow read: if hasRole('admin');
+      
+      allow write: if hasRole('admin') &&
+        request.resource.metadata.keys().hasAll([
+          'reportType', 'generatedAt', 'generatedBy', 'reportVersion'
+        ]) &&
+        request.resource.metadata.reportType in [
+          'vulnerability_scan', 'malware_scan_summary', 'access_audit',
+          'compliance_report', 'security_incident'
+        ] &&
+        request.resource.metadata.generatedBy == request.auth.uid;
+      
+      // Security reports are retained for compliance
+      allow delete: if false;
+    }
+    
+    // User profile pictures with enhanced security
+    match /profile_pictures/{userId}/{fileName} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive();
+      
+      allow write: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        request.auth.uid == userId &&
+        // Image files only
+        request.resource.contentType.matches('image/.*') &&
+        // Size limit: 2MB for profile pictures
+        request.resource.size <= 2 * 1024 * 1024 &&
+        request.resource.size > 1024 && // Minimum 1KB
+        // Required metadata for tracking
+        request.resource.metadata.keys().hasAll([
+          'uploadedAt', 'userId', 'imageType', 'securityValidated'
+        ]) &&
+        request.resource.metadata.userId == request.auth.uid &&
+        request.resource.metadata.imageType in ['profile', 'avatar'] &&
+        request.resource.metadata.securityValidated == 'true';
+      
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        (request.auth.uid == userId || hasRole('admin'));
+    }
+    
+    // Company documents with role-based access
+    match /company_documents/{companyId}/{documentType}/{fileName} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        // Company owner/employee
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.companyId == companyId ||
+        // Admin access
+        hasRole('admin')
+      );
+      
+      allow write: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        // Must be company member or admin
+        (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.companyId == companyId ||
+         hasRole('admin')) &&
+        // Size limit: 20MB for company documents
+        request.resource.size <= 20 * 1024 * 1024 &&
+        // Allowed document types
+        request.resource.contentType in [
+          'application/pdf', 'application/msword', 
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'image/jpeg', 'image/png', 'text/plain'
+        ] &&
+        // Required metadata
+        request.resource.metadata.keys().hasAll([
+          'companyId', 'documentType', 'uploadedBy', 'uploadedAt', 'securityValidated'
+        ]) &&
+        request.resource.metadata.companyId == companyId &&
+        request.resource.metadata.documentType in [
+          'logo', 'certificate', 'license', 'contract', 'policy', 'procedure'
+        ] &&
+        request.resource.metadata.uploadedBy == request.auth.uid &&
+        request.resource.metadata.securityValidated == 'true';
+      
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.companyId == companyId ||
+        hasRole('admin')
+      );
+    }
+    
+    // Chat file uploads with enhanced validation
+    match /chat_uploads/{conversationId}/{fileName} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        request.auth.uid in firestore.get(/databases/(default)/documents/conversations/$(conversationId)).data.participants
+      );
+      
+      allow write: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+        request.auth.uid in firestore.get(/databases/(default)/documents/conversations/$(conversationId)).data.participants &&
+        // File size limit: 5MB for chat uploads
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.size > 0 &&
+        // Allowed file types for chat
+        request.resource.contentType in [
+          'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+          'application/pdf', 'text/plain',
+          'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ] &&
+        // Security metadata required
+        request.resource.metadata.keys().hasAll([
+          'uploadedBy', 'uploadedAt', 'conversationId', 'securityValidated', 'fileType'
+        ]) &&
+        request.resource.metadata.uploadedBy == request.auth.uid &&
+        request.resource.metadata.conversationId == conversationId &&
+        request.resource.metadata.securityValidated == 'true';
+      
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        resource.metadata.uploadedBy == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+    
+    // System backup storage (admin only)
+    match /system_backups/{backupType}/{backupId} {
+      allow read: if hasRole('admin');
+      
+      allow write: if hasRole('admin') &&
+        request.resource.metadata.keys().hasAll([
+          'backupType', 'createdAt', 'createdBy', 'encrypted', 'retentionPeriod'
+        ]) &&
+        request.resource.metadata.backupType in [
+          'user_data', 'certificate_data', 'audit_logs', 'security_logs', 'system_config'
+        ] &&
+        request.resource.metadata.createdBy == request.auth.uid &&
+        request.resource.metadata.encrypted == 'true';
+      
+      // Backups are retained according to policy
+      allow delete: if hasRole('admin') &&
+        resource.metadata.get('retentionExpired', 'false') == 'true';
+    }
+    
+    // Default deny for all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

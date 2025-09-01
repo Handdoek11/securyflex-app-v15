@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "flutter-docs": {
+      "command": "npx",
+      "args": ["-y", "flutter-mcp"]
+    },
+    "firebase": {
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "experimental:mcp"]
+    },
+    "dart-flutter": {
+      "command": "dart",
+      "args": ["run", "mcp_dart_sdk", "serve", "flutter_mcp_server"]
+    }
+  }
+}

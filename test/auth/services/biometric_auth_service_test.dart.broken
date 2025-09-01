@@ -1,0 +1,978 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
+import 'package:local_auth_darwin/local_auth_darwin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
+import 'package:securyflex_app/auth/services/biometric_auth_service.dart';
+import 'package:securyflex_app/auth/models/enhanced_auth_models.dart' as models;
+
+/// Mock LocalAuthentication for testing
+class MockLocalAuthentication extends Mock implements LocalAuthentication {}
+
+/// Mock SharedPreferences for testing
+class MockSharedPreferences extends Mock implements SharedPreferences {}
+
+/// Mock MethodChannel for testing platform-specific behaviors
+class MockMethodChannel extends Mock implements MethodChannel {}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('Biometric Authentication Service Tests', () {
+    late MockLocalAuthentication mockLocalAuth;
+    late MockSharedPreferences mockPrefs;
+
+    setUp(() {
+      mockLocalAuth = MockLocalAuthentication();
+      mockPrefs = MockSharedPreferences();
+      
+      SharedPreferences.setMockInitialValues({});
+      
+      // Default mocks for basic operations
+      when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+      when(() => mockPrefs.getString(any())).thenReturn(null);
+      when(() => mockPrefs.setBool(any(), any())).thenAnswer((_) async => true);
+      when(() => mockPrefs.getBool(any())).thenReturn(null);
+    });
+
+    group('Biometric Availability Detection', () {
+      test('should detect available biometric types correctly', () async {
+        // Mock available biometrics
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => [
+          BiometricType.fingerprint,
+          BiometricType.face,
+        ]);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        
+        final availability = await BiometricAuthService.checkBiometricAvailability();
+        
+        expect(availability.isAvailable, isTrue);
+        expect(availability.availableTypes, contains(models.BiometricType.fingerprint));
+        expect(availability.availableTypes, contains(models.BiometricType.face));
+        expect(availability.reasonDutch, contains('beschikbaar'));
+      });
+
+      test('should handle device without biometric support', () async {
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => false);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => false);
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => []);
+        
+        final availability = await BiometricAuthService.checkBiometricAvailability();
+        
+        expect(availability.isAvailable, isFalse);
+        expect(availability.availableTypes, isEmpty);
+        expect(availability.errorCode, equals('NOT_SUPPORTED'));
+        expect(availability.reasonDutch, contains('niet ondersteund'));
+      });
+
+      test('should detect when biometrics are not enrolled', () async {
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => []);
+        
+        final availability = await BiometricAuthService.checkBiometricAvailability();
+        
+        expect(availability.isAvailable, isFalse);
+        expect(availability.errorCode, equals('NOT_ENROLLED'));
+        expect(availability.reasonDutch, contains('geen biometrische gegevens'));
+      });
+
+      test('should handle hardware availability but no permission', () async {
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => false);
+        
+        final availability = await BiometricAuthService.checkBiometricAvailability();
+        
+        expect(availability.isAvailable, isFalse);
+        expect(availability.errorCode, equals('NOT_AVAILABLE'));
+        expect(availability.reasonDutch, contains('niet beschikbaar'));
+      });
+
+      test('should differentiate between iOS and Android capabilities', () async {
+        // Test iOS specific behavior
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => [
+          BiometricType.face, // Face ID
+        ]);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        
+        final availability = await BiometricAuthService.checkBiometricAvailability();
+        
+        expect(availability.isAvailable, isTrue);
+        expect(availability.availableTypes, contains(models.BiometricType.face));
+        expect(availability.platformTypes, isNotNull);
+      });
+    });
+
+    group('Biometric Authentication Setup', () {
+      test('should enable biometric authentication with available types', () async {
+        const userId = 'test-user-123';
+        final enabledTypes = [models.BiometricType.fingerprint, models.BiometricType.face];
+        
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => enabledTypes);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.enableBiometric(
+          userId: userId,
+          enabledTypes: enabledTypes,
+        );
+        
+        expect(result, isTrue);
+        verify(() => mockPrefs.setString('biometric_config_$userId', any())).called(1);
+      });
+
+      test('should reject setup with unsupported biometric types', () async {
+        const userId = 'test-user-123';
+        final requestedTypes = [models.BiometricType.fingerprint, models.BiometricType.face];
+        final availableTypes = [models.BiometricType.fingerprint]; // Only fingerprint available
+        
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => availableTypes);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        
+        expect(
+          () => BiometricAuthService.enableBiometric(
+            userId: userId,
+            enabledTypes: requestedTypes,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('should test biometric authentication during setup', () async {
+        const userId = 'test-user-123';
+        final enabledTypes = [models.BiometricType.fingerprint];
+        
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => enabledTypes);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+        
+        // Mock authentication test during setup
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.enableBiometric(
+          userId: userId,
+          enabledTypes: enabledTypes,
+          testAuthentication: true,
+        );
+        
+        expect(result, isTrue);
+        
+        // Verify authentication test was performed
+        verify(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).called(1);
+      });
+
+      test('should fail setup if authentication test fails', () async {
+        const userId = 'test-user-123';
+        final enabledTypes = [models.BiometricType.fingerprint];
+        
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => enabledTypes);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        
+        // Mock failed authentication test
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => false);
+        
+        final result = await BiometricAuthService.enableBiometric(
+          userId: userId,
+          enabledTypes: enabledTypes,
+          testAuthentication: true,
+        );
+        
+        expect(result, isFalse);
+        verifyNever(() => mockPrefs.setString(any(), any()));
+      });
+
+      test('should store biometric preferences with encryption', () async {
+        const userId = 'test-user-123';
+        final enabledTypes = [models.BiometricType.fingerprint];
+        
+        when(() => mockLocalAuth.getAvailableBiometrics()).thenAnswer((_) async => enabledTypes);
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.canCheckBiometrics).thenAnswer((_) async => true);
+        when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+        when(() => mockPrefs.setBool(any(), any())).thenAnswer((_) async => true);
+        
+        await BiometricAuthService.enableBiometric(
+          userId: userId,
+          enabledTypes: enabledTypes,
+          storeSecurely: true,
+        );
+        
+        // Verify secure storage flags
+        verify(() => mockPrefs.setBool('biometric_secure_storage_$userId', true)).called(1);
+        verify(() => mockPrefs.setString('biometric_config_$userId', any())).called(1);
+      });
+    });
+
+    group('Biometric Authentication Process', () {
+      test('should authenticate successfully with valid biometric', () async {
+        const userId = 'test-user-123';
+        
+        // Mock stored configuration
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "setupDate": "2023-01-01T00:00:00.000Z",
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit',
+        );
+        
+        expect(result.isAuthenticated, isTrue);
+        expect(result.biometricType, equals(models.BiometricType.fingerprint));
+        expect(result.authenticatedAt, isNotNull);
+        expect(result.errorCode, isNull);
+      });
+
+      test('should fail authentication with invalid biometric', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "setupDate": "2023-01-01T00:00:00.000Z",
+          "failedAttempts": 2
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => false);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('AUTHENTICATION_FAILED'));
+        expect(result.errorMessageDutch, contains('mislukt'));
+        expect(result.remainingAttempts, lessThan(5));
+        
+        // Verify failed attempt was recorded
+        verify(() => mockPrefs.setString('biometric_config_$userId', any())).called(1);
+      });
+
+      test('should handle user cancellation gracefully', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenThrow(PlatformException(
+          code: 'UserCancel',
+          message: 'User cancelled authentication',
+        ));
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('USER_CANCELLED'));
+        expect(result.errorMessageDutch, contains('geannuleerd'));
+        
+        // User cancellation should not count as failed attempt
+        verifyNever(() => mockPrefs.setString('biometric_config_$userId', any()));
+      });
+
+      test('should lockout user after maximum failed attempts', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 5,
+          "lockedUntil": "${DateTime.now().add(Duration(minutes: 15)).toIso8601String()}"
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('ACCOUNT_LOCKED'));
+        expect(result.errorMessageDutch, contains('tijdelijk vergrendeld'));
+        expect(result.lockTimeRemaining, isNotNull);
+        
+        // Should not attempt authentication when locked
+        verifyNever(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        ));
+      });
+
+      test('should support biometric-only mode without fallback', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          biometricOnly: true,
+          localizedReason: 'Bevestig uw identiteit',
+        );
+        
+        expect(result.isAuthenticated, isTrue);
+        
+        // Verify biometric-only option was passed
+        final captured = verify(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: captureAny(named: 'options'),
+        )).captured.first as AuthenticationOptions;
+        
+        expect(captured.biometricOnly, isTrue);
+      });
+
+      test('should provide appropriate Dutch localized messages', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["face"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit met Face ID',
+          localizedFallbackTitle: 'Wachtwoord gebruiken',
+        );
+        
+        expect(result.isAuthenticated, isTrue);
+        
+        // Verify Dutch messages were used
+        final capturedMessages = verify(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: captureAny(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).captured.first as List<AuthMessages>;
+        
+        expect(capturedMessages, isNotEmpty);
+      });
+    });
+
+    group('Configuration Management', () {
+      test('should load biometric configuration correctly', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint", "face"],
+          "setupDate": "2023-01-01T00:00:00.000Z",
+          "failedAttempts": 1,
+          "lastUsed": "2023-01-01T12:00:00.000Z",
+          "deviceFingerprint": "device-123"
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        
+        final config = await BiometricAuthService.getBiometricConfig(userId);
+        
+        expect(config.isEnabled, isTrue);
+        expect(config.enabledTypes, hasLength(2));
+        expect(config.enabledTypes, contains(models.BiometricType.fingerprint));
+        expect(config.enabledTypes, contains(models.BiometricType.face));
+        expect(config.setupDate, isNotNull);
+        expect(config.failedAttempts, equals(1));
+        expect(config.lastUsed, isNotNull);
+      });
+
+      test('should return default configuration for new users', () async {
+        const userId = 'test-user-new';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(null);
+        
+        final config = await BiometricAuthService.getBiometricConfig(userId);
+        
+        expect(config.isEnabled, isFalse);
+        expect(config.enabledTypes, isEmpty);
+        expect(config.setupDate, isNull);
+        expect(config.failedAttempts, equals(0));
+        expect(config.isLocked, isFalse);
+      });
+
+      test('should handle corrupted configuration gracefully', () async {
+        const userId = 'test-user-corrupted';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn('invalid{json}');
+        
+        final config = await BiometricAuthService.getBiometricConfig(userId);
+        
+        expect(config.isEnabled, isFalse);
+        expect(config.enabledTypes, isEmpty);
+      });
+
+      test('should disable biometric authentication with verification', () async {
+        const userId = 'test-user-123';
+        const verificationCode = '123456';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "setupDate": "2023-01-01T00:00:00.000Z"
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockPrefs.remove(any())).thenAnswer((_) async => true);
+        
+        // Mock successful TOTP verification (would integrate with TOTP service)
+        final result = await BiometricAuthService.disableBiometric(
+          userId: userId,
+          verificationCode: verificationCode,
+        );
+        
+        expect(result, isTrue);
+        verify(() => mockPrefs.remove('biometric_config_$userId')).called(1);
+      });
+
+      test('should update configuration after successful authentication', () async {
+        const userId = 'test-user-123';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 2
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test authentication',
+        );
+        
+        // Verify configuration was updated (failed attempts reset, last used updated)
+        final capturedConfig = verify(() => mockPrefs.setString('biometric_config_$userId', captureAny()))
+            .captured.first as String;
+        expect(capturedConfig, contains('"failedAttempts":0'));
+        expect(capturedConfig, contains('lastUsed'));
+      });
+    });
+
+    group('Platform-Specific Behaviors', () {
+      test('should configure Android-specific authentication options', () async {
+        const userId = 'test-user-android';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit',
+          platformSpecific: {
+            'android': {
+              'signInTitle': 'Inloggen met biometrische gegevens',
+              'cancelButton': 'Annuleren',
+              'fallbackLabel': 'PIN gebruiken',
+            }
+          },
+        );
+        
+        expect(result.isAuthenticated, isTrue);
+        
+        // Verify Android-specific messages were configured
+        final capturedMessages = verify(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: captureAny(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).captured.first as List<AuthMessages>;
+        
+        final androidMessages = capturedMessages
+            .whereType<AndroidAuthMessages>()
+            .firstOrNull;
+        expect(androidMessages, isNotNull);
+      });
+
+      test('should configure iOS-specific authentication options', () async {
+        const userId = 'test-user-ios';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["face"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit met Face ID',
+          localizedFallbackTitle: 'Wachtwoord gebruiken',
+          platformSpecific: {
+            'ios': {
+              'touchIDAuthenticationAllowableReuseDuration': 30,
+            }
+          },
+        );
+        
+        expect(result.isAuthenticated, isTrue);
+        
+        // Verify iOS-specific configuration
+        final capturedMessages = verify(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: captureAny(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).captured.first as List<AuthMessages>;
+        
+        final iosMessages = capturedMessages
+            .whereType<IOSAuthMessages>()
+            .firstOrNull;
+        expect(iosMessages, isNotNull);
+      });
+
+      test('should handle platform-specific errors correctly', () async {
+        const userId = 'test-user-error';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenThrow(PlatformException(
+          code: 'BiometricNotRecognized',
+          message: 'Biometric not recognized',
+          details: {'platform': 'android'},
+        ));
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test authentication',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('BiometricNotRecognized'));
+        expect(result.platformInfo, containsPair('platform', 'android'));
+      });
+    });
+
+    group('Security Features', () {
+      test('should detect biometric spoofing attempts', () async {
+        const userId = 'test-user-security';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0,
+          "deviceFingerprint": "expected-device-123"
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        
+        // Simulate authentication from different device
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test authentication',
+          deviceFingerprint: 'different-device-456',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('DEVICE_MISMATCH'));
+        expect(result.securityFlags, contains('POTENTIAL_SPOOFING'));
+      });
+
+      test('should implement anti-tampering measures', () async {
+        const userId = 'test-user-tamper';
+        
+        // Mock tampered biometric configuration
+        when(() => mockPrefs.getString('biometric_config_$userId'))
+            .thenReturn('tampered_configuration_data');
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test authentication',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('CONFIGURATION_TAMPERED'));
+        expect(result.errorMessageDutch, contains('configuratie gewijzigd'));
+      });
+
+      test('should track unusual authentication patterns', () async {
+        const userId = 'test-user-pattern';
+        
+        // Simulate multiple rapid authentication attempts
+        for (int i = 0; i < 10; i++) {
+          await BiometricAuthService.trackAuthenticationAttempt(
+            userId: userId,
+            timestamp: DateTime.now(),
+            deviceInfo: 'test-device',
+            result: i % 2 == 0, // Alternating success/failure
+          );
+        }
+        
+        final securityAlert = await BiometricAuthService.checkSecurityPatterns(userId);
+        
+        expect(securityAlert.hasUnusualActivity, isTrue);
+        expect(securityAlert.riskLevel, equals('MEDIUM'));
+        expect(securityAlert.recommendations, isNotEmpty);
+      });
+
+      test('should implement secure key derivation for biometric data', () async {
+        const userId = 'test-user-crypto';
+        const biometricTemplate = 'mock_biometric_template_data';
+        
+        final derivedKey = await BiometricAuthService.deriveSecureKey(
+          userId: userId,
+          biometricTemplate: biometricTemplate,
+        );
+        
+        expect(derivedKey, isNotNull);
+        expect(derivedKey.length, equals(32)); // 256-bit key
+        
+        // Same input should produce same key
+        final derivedKey2 = await BiometricAuthService.deriveSecureKey(
+          userId: userId,
+          biometricTemplate: biometricTemplate,
+        );
+        
+        expect(derivedKey, equals(derivedKey2));
+      });
+
+      test('should validate biometric template integrity', () async {
+        const validTemplate = 'valid_biometric_template_with_checksum';
+        const corruptedTemplate = 'corrupted_template_data';
+        
+        expect(BiometricAuthService.validateTemplateIntegrity(validTemplate), isTrue);
+        expect(BiometricAuthService.validateTemplateIntegrity(corruptedTemplate), isFalse);
+      });
+    });
+
+    group('Error Handling and Edge Cases', () {
+      test('should handle biometric hardware failure', () async {
+        const userId = 'test-user-hardware-fail';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenThrow(PlatformException(
+          code: 'BiometricNotAvailable',
+          message: 'Biometric hardware not available',
+        ));
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test authentication',
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('BiometricNotAvailable'));
+        expect(result.errorMessageDutch, contains('biometrische hardware'));
+        expect(result.suggestedAction, contains('systeem opnieuw opstarten'));
+      });
+
+      test('should handle OS version compatibility issues', () async {
+        when(() => mockLocalAuth.isDeviceSupported()).thenAnswer((_) async => false);
+        
+        final availability = await BiometricAuthService.checkBiometricAvailability();
+        
+        expect(availability.isAvailable, isFalse);
+        expect(availability.errorCode, equals('OS_VERSION_NOT_SUPPORTED'));
+        expect(availability.reasonDutch, contains('besturingssysteem'));
+      });
+
+      test('should handle storage corruption gracefully', () async {
+        const userId = 'test-user-storage-corrupt';
+        
+        when(() => mockPrefs.getString(any())).thenThrow(Exception('Storage corrupted'));
+        when(() => mockPrefs.setString(any(), any())).thenAnswer((_) async => true);
+        
+        // Should create new configuration instead of crashing
+        final config = await BiometricAuthService.getBiometricConfig(userId);
+        
+        expect(config.isEnabled, isFalse);
+        expect(config.enabledTypes, isEmpty);
+      });
+
+      test('should handle concurrent authentication requests', () async {
+        const userId = 'test-user-concurrent';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        // Send multiple concurrent authentication requests
+        final futures = List.generate(3, (_) => BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Concurrent test',
+        ));
+        
+        final results = await Future.wait(futures);
+        
+        // Only one should succeed, others should be queued or rejected
+        final successfulResults = results.where((r) => r.isAuthenticated).toList();
+        expect(successfulResults.length, equals(1));
+        
+        final queuedResults = results.where((r) => 
+          !r.isAuthenticated && r.errorCode == 'AUTHENTICATION_IN_PROGRESS'
+        ).toList();
+        expect(queuedResults.length, equals(2));
+      });
+    });
+
+    group('Dutch Localization and Accessibility', () {
+      test('should provide complete Dutch localization', () {
+        final dutchMessages = BiometricAuthService.getDutchMessages();
+        
+        expect(dutchMessages['authentication_prompt'], contains('identiteit'));
+        expect(dutchMessages['fingerprint_hint'], contains('vingerafdruk'));
+        expect(dutchMessages['face_hint'], contains('gezicht'));
+        expect(dutchMessages['fallback_button'], contains('wachtwoord'));
+        expect(dutchMessages['cancel_button'], contains('annuleren'));
+        expect(dutchMessages['try_again'], contains('opnieuw proberen'));
+      });
+
+      test('should support accessibility features', () async {
+        const userId = 'test-user-accessibility';
+        
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "failedAttempts": 0,
+          "accessibilityEnabled": true
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenAnswer((_) async => true);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Bevestig uw identiteit',
+          accessibilityOptions: {
+            'highContrast': true,
+            'largeText': true,
+            'voiceOver': true,
+          },
+        );
+        
+        expect(result.isAuthenticated, isTrue);
+        expect(result.accessibilityCompliant, isTrue);
+      });
+
+      test('should provide screen reader compatible descriptions', () {
+        final descriptions = BiometricAuthService.getAccessibilityDescriptions();
+        
+        expect(descriptions['fingerprint_sensor'], contains('vingerafdruksensor'));
+        expect(descriptions['face_camera'], contains('gezichtsherkenning'));
+        expect(descriptions['authentication_status'], isNotEmpty);
+        expect(descriptions['error_description'], isNotEmpty);
+      });
+    });
+
+    group('Performance and Battery Optimization', () {
+      test('should optimize authentication frequency', () async {
+        const userId = 'test-user-optimization';
+        
+        // Mock recent authentication
+        final configJson = '''
+        {
+          "isEnabled": true,
+          "enabledTypes": ["fingerprint"],
+          "lastUsed": "${DateTime.now().subtract(Duration(seconds: 30)).toIso8601String()}",
+          "authenticationInterval": 60
+        }
+        ''';
+        
+        when(() => mockPrefs.getString('biometric_config_$userId')).thenReturn(configJson);
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test optimization',
+          respectCooldown: true,
+        );
+        
+        // Should skip authentication due to recent successful authentication
+        expect(result.isAuthenticated, isTrue);
+        expect(result.usedCachedResult, isTrue);
+        expect(result.cacheTimeRemaining, greaterThan(0));
+        
+        // Should not call platform authentication
+        verifyNever(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        ));
+      });
+
+      test('should monitor battery impact', () async {
+        const userId = 'test-user-battery';
+        
+        final batteryMetrics = await BiometricAuthService.getBatteryImpactMetrics(userId);
+        
+        expect(batteryMetrics['totalAuthAttempts'], isA<int>());
+        expect(batteryMetrics['batteryUsageEstimate'], isA<double>());
+        expect(batteryMetrics['optimizationSuggestions'], isA<List>());
+      });
+
+      test('should implement smart fallback strategies', () async {
+        const userId = 'test-user-fallback';
+        
+        // Mock low battery condition
+        when(() => mockLocalAuth.authenticate(
+          localizedReason: any(named: 'localizedReason'),
+          authMessages: any(named: 'authMessages'),
+          options: any(named: 'options'),
+        )).thenThrow(PlatformException(
+          code: 'LowBattery',
+          message: 'Battery too low for biometric authentication',
+        ));
+        
+        final result = await BiometricAuthService.authenticate(
+          userId: userId,
+          localizedReason: 'Test fallback',
+          enableSmartFallback: true,
+        );
+        
+        expect(result.isAuthenticated, isFalse);
+        expect(result.errorCode, equals('LowBattery'));
+        expect(result.fallbackOptions, isNotEmpty);
+        expect(result.fallbackOptions, contains('PIN'));
+        expect(result.fallbackOptions, contains('PASSWORD'));
+      });
+    });
+  });
+}

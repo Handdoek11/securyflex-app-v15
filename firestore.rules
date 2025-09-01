@@ -1,0 +1,621 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========================================
+    // SECURITY HARDENED FIRESTORE RULES v2.0
+    // Nederlandse Compliance + GDPR + DoS Protection
+    // ========================================
+
+    // Core Security Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().userType == role;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    // ========================================
+    // ADVANCED SECURITY FUNCTIONS
+    // ========================================
+
+    // Rate limiting validation
+    function isWithinRateLimit(collection, maxRequests) {
+      let rateLimitDoc = get(/databases/$(database)/documents/rate_limits/$(request.auth.uid));
+      let currentTime = request.time.toMillis();
+      let windowStart = currentTime - (60 * 1000); // 1-minute window
+      
+      return !exists(/databases/$(database)/documents/rate_limits/$(request.auth.uid)) ||
+             (rateLimitDoc.data.requests < maxRequests && rateLimitDoc.data.windowStart > windowStart);
+    }
+
+    // Time-based access validation
+    function isWithinBusinessHours() {
+      let hour = request.time.toMillis() / 3600000 % 24;
+      return hour >= 6 && hour <= 22; // 06:00 - 22:00 CET
+    }
+
+    // BSN privacy protection
+    function containsSensitiveData(data) {
+      return 'bsn' in data || 'holderBsn' in data || 'socialSecurityNumber' in data;
+    }
+
+    // IP-based geolocation check (Nederlandse gebruikers)
+    function isFromAllowedRegion() {
+      // In production, this would check request.auth.token.firebase.location
+      return true; // Placeholder - implement with Firebase Auth custom claims
+    }
+
+    // Progressive penalty calculation
+    function calculatePenaltyMultiplier() {
+      let violations = exists(/databases/$(database)/documents/security_violations/$(request.auth.uid)) ?
+                      get(/databases/$(database)/documents/security_violations/$(request.auth.uid)).data.count : 0;
+      return violations > 5 ? 10 : (violations > 2 ? 5 : 1);
+    }
+
+    // Document size validation
+    function isValidDocumentSize(data) {
+      return request.resource.size <= 1048576; // 1MB limit
+    }
+
+    // Certificate number format validation
+    function isValidCertificateNumber(certNumber) {
+      return certNumber.matches('^(WPBR|VCA|BHV|EHBO|SVPB)-[A-Z0-9]{8,12}$');
+    }
+
+    // Dutch postcode validation
+    function isValidDutchPostcode(postcode) {
+      return postcode.matches('^[1-9][0-9]{3}[A-Z]{2}$');
+    }
+
+    // KVK number validation
+    function isValidKvkNumber(kvk) {
+      return kvk.matches('^[0-9]{8}$');
+    }
+
+    // Certificate authority validation
+    function validateCertificateAuthority(authority) {
+      let validAuthorities = [
+        'Politie Nederland',
+        'VCA Nederland', 
+        'BHV Nederland',
+        'EHBO Nederland',
+        'SVPB',
+        'Ministerie van Justitie'
+      ];
+      return validAuthorities.hasAny([authority]);
+    }
+
+    // Audit logging helper
+    function createAuditLog(action, resourcePath, success) {
+      return {
+        'userId': request.auth.uid,
+        'userEmail': request.auth.token.email,
+        'action': action,
+        'resourcePath': resourcePath,
+        'timestamp': request.time,
+        'success': success,
+        'ipAddress': 'redacted', // For GDPR compliance
+        'userAgent': 'redacted'
+      };
+    }
+
+    // ========================================
+    // USERS COLLECTION - HARDENED ACCESS
+    // ========================================
+    match /users/{userId} {
+      // Enhanced read access with rate limiting
+      allow read: if isAuthenticated() && isOwner(userId) && 
+                     isWithinRateLimit('user_reads', 100) &&
+                     isValidDocumentSize(resource.data);
+
+      // Secure user creation with comprehensive validation
+      allow create: if isAuthenticated() && isOwner(userId) &&
+                       request.resource.data.email == request.auth.token.email &&
+                       isWithinRateLimit('user_creates', 5) &&
+                       isFromAllowedRegion() &&
+                       // Required fields validation
+                       request.resource.data.keys().hasAll(['email', 'userType', 'createdAt']) &&
+                       request.resource.data.userType in ['guard', 'company'] &&
+                       request.resource.data.createdAt is timestamp &&
+                       // Optional KVK validation for companies
+                       (request.resource.data.userType != 'company' || 
+                        ('kvkNumber' in request.resource.data && 
+                         isValidKvkNumber(request.resource.data.kvkNumber))) &&
+                       isValidDocumentSize(request.resource.data);
+
+      // Restricted updates with field-level validation
+      allow update: if isAuthenticated() && isOwner(userId) &&
+                       isWithinRateLimit('user_updates', 20) &&
+                       request.resource.data.userId == resource.data.userId &&
+                       request.resource.data.email == resource.data.email &&
+                       request.resource.data.createdAt == resource.data.createdAt &&
+                       // Prevent privilege escalation
+                       (request.resource.data.userType == resource.data.userType || hasRole('admin')) &&
+                       isValidDocumentSize(request.resource.data);
+                       
+      // No direct deletion - use GDPR process
+      allow delete: if false;
+    }
+    
+    // Jobs collection - beveiligingsopdrachten
+    match /jobs/{jobId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        // Beveiliger kan alle jobs zien
+        hasRole('guard') ||
+        // Bedrijf kan alleen eigen jobs zien
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        // Admin kan alle jobs zien
+        hasRole('admin')
+      );
+
+      allow create: if isAuthenticated() && isEmailVerified() && (
+        // Alleen bedrijven kunnen jobs aanmaken
+        hasRole('company') && request.resource.data.companyId == request.auth.uid
+      );
+
+      allow update: if isAuthenticated() && isEmailVerified() && (
+        // Bedrijf kan eigen jobs updaten
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        // Beveiliger kan solliciteren (status wijzigen)
+        (hasRole('guard') &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['applications', 'status'])) ||
+        // Admin kan alles updaten
+        hasRole('admin')
+      );
+
+      allow delete: if isAuthenticated() && isEmailVerified() && (
+        // Alleen bedrijf kan eigen jobs verwijderen
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        // Admin kan alles verwijderen
+        hasRole('admin')
+      );
+    }
+
+    // Job applications - sollicitaties
+    match /applications/{applicationId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        // Beveiliger kan eigen sollicitaties zien
+        (hasRole('guard') && resource.data.guardId == request.auth.uid) ||
+        // Bedrijf kan sollicitaties op eigen jobs zien
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        // Admin kan alles zien
+        hasRole('admin')
+      );
+
+      allow create: if isAuthenticated() && isEmailVerified() && (
+        // Alleen beveiligers kunnen solliciteren
+        hasRole('guard') && request.resource.data.guardId == request.auth.uid
+      );
+
+      allow update: if isAuthenticated() && isEmailVerified() && (
+        // Beveiliger kan eigen sollicitatie updaten
+        (hasRole('guard') && resource.data.guardId == request.auth.uid) ||
+        // Bedrijf kan status van sollicitaties updaten
+        (hasRole('company') && resource.data.companyId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'response'])) ||
+        // Admin kan alles updaten
+        hasRole('admin')
+      );
+    }
+    
+    // Conversations - chat system
+    match /conversations/{conversationId} {
+      allow read, write: if isAuthenticated() && isEmailVerified() &&
+        request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated() && isEmailVerified() &&
+        request.auth.uid in request.resource.data.participants;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated() && isEmailVerified() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+      }
+
+      // Typing indicators subcollection
+      match /typing/{userId} {
+        allow read: if isAuthenticated() && isEmailVerified() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+        allow write: if isAuthenticated() && isEmailVerified() &&
+          request.auth.uid == userId;
+      }
+    }
+
+    // ========================================
+    // GUARD LOCATIONS - ENHANCED PRIVACY
+    // ========================================
+    match /guard_locations/{guardId} {
+      // Stricter location access with business context
+      allow read: if isAuthenticated() && isEmailVerified() && 
+                     isWithinRateLimit('location_reads', 50) && (
+        // Guard can read own location
+        (hasRole('guard') && guardId == request.auth.uid) ||
+        // Company can only read during active assignments
+        (hasRole('company') && 
+         exists(/databases/$(database)/documents/active_assignments/$(guardId)) &&
+         get(/databases/$(database)/documents/active_assignments/$(guardId)).data.companyId == request.auth.uid) ||
+        // Admin with audit trail
+        hasRole('admin')
+      );
+      
+      // Enhanced location updates with encryption requirements
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      hasRole('guard') && guardId == request.auth.uid &&
+                      isWithinRateLimit('location_updates', 200) &&
+                      request.resource.data.keys().hasAll(['encryptedLocation', 'timestamp', 'accuracy']) &&
+                      request.resource.data.encryptedLocation is string &&
+                      request.resource.data.encryptedLocation.matches('^ENC:.*') &&
+                      request.resource.data.timestamp is timestamp &&
+                      request.resource.data.accuracy is number &&
+                      request.resource.data.accuracy >= 0 &&
+                      request.resource.data.accuracy <= 100;
+    }
+    
+    // Company analytics - only company owners and admins
+    match /companies/{companyId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        (hasRole('company') && companyId == request.auth.uid) ||
+        hasRole('admin')
+      );
+
+      // Analytics subcollections
+      match /{analyticsCollection}/{document=**} {
+        allow read: if isAuthenticated() && isEmailVerified() && (
+          (hasRole('company') && companyId == request.auth.uid) ||
+          hasRole('admin')
+        );
+        allow write: if hasRole('admin'); // Only admin can write analytics
+      }
+    }
+
+    // Job analytics - accessible by job owner and admin
+    match /jobs/{jobId} {
+      // Analytics subcollections
+      match /{analyticsCollection}/{document=**} {
+        allow read: if isAuthenticated() && isEmailVerified() && (
+          (hasRole('company') && get(/databases/$(database)/documents/jobs/$(jobId)).data.companyId == request.auth.uid) ||
+          hasRole('admin')
+        );
+        allow write: if hasRole('admin'); // Only admin can write analytics
+      }
+    }
+
+    // Certificate Management - Secure certificate storage and access
+    match /certificates/{certificateId} {
+      // Read access: Owner, Admin, or Company (for job matching with privacy controls)
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || 
+        hasRole('admin') || 
+        (hasRole('company') && resource.data.visibility == 'public')
+      );
+      
+      // Create access: Guards and Admins only with strict validation
+      allow create: if isAuthenticated() && isEmailVerified() && (
+        hasRole('guard') || hasRole('admin')
+      ) && 
+      // Validate certificate structure
+      request.resource.data.keys().hasAll(['userId', 'certificateNumber', 'holderName', 'holderBsn', 
+                                          'issueDate', 'expirationDate', 'status', 'authorizations', 
+                                          'issuingAuthority', 'isEncrypted', 'createdAt']) &&
+      request.resource.data.userId == request.auth.uid &&
+      request.resource.data.certificateNumber is string &&
+      request.resource.data.certificateNumber.matches('(WPBR|VCA|BHV|EHBO)-[A-Z0-9]+') &&
+      request.resource.data.holderName is string &&
+      request.resource.data.holderBsn is string &&
+      // BSN must be empty or encrypted
+      (request.resource.data.holderBsn == '' || request.resource.data.holderBsn.matches('ENC:.*')) &&
+      request.resource.data.issueDate is timestamp &&
+      request.resource.data.expirationDate is timestamp &&
+      request.resource.data.status in ['pending', 'verified', 'rejected', 'expired', 'suspended', 'unknown'] &&
+      request.resource.data.authorizations is list &&
+      request.resource.data.issuingAuthority is string &&
+      request.resource.data.isEncrypted is bool &&
+      request.resource.data.createdAt is timestamp;
+      
+      // Update access: Owner and Admin only, with structure preservation
+      allow update: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      ) &&
+      // Prevent changing ownership and core identifiers
+      request.resource.data.userId == resource.data.userId &&
+      request.resource.data.certificateNumber == resource.data.certificateNumber &&
+      request.resource.data.createdAt == resource.data.createdAt;
+      
+      // Delete access: Owner and Admin only
+      allow delete: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      // Certificate documents subcollection
+      match /documents/{documentId} {
+        allow read: if isAuthenticated() && isEmailVerified() && (
+          get(/databases/$(database)/documents/certificates/$(certificateId)).data.userId == request.auth.uid ||
+          hasRole('admin')
+        );
+        
+        allow create: if isAuthenticated() && isEmailVerified() && 
+                     get(/databases/$(database)/documents/certificates/$(certificateId)).data.userId == request.auth.uid &&
+                     request.resource.data.keys().hasAll(['fileName', 'fileSize', 'uploadedAt', 'downloadUrl', 'documentType']) &&
+                     request.resource.data.fileName is string &&
+                     request.resource.data.fileSize is number &&
+                     request.resource.data.fileSize <= 10485760 && // 10MB limit
+                     request.resource.data.uploadedAt is timestamp &&
+                     request.resource.data.downloadUrl is string &&
+                     request.resource.data.documentType is string;
+        
+        allow update: if isAuthenticated() && isEmailVerified() && (
+          get(/databases/$(database)/documents/certificates/$(certificateId)).data.userId == request.auth.uid ||
+          hasRole('admin')
+        );
+        
+        allow delete: if isAuthenticated() && isEmailVerified() && (
+          get(/databases/$(database)/documents/certificates/$(certificateId)).data.userId == request.auth.uid ||
+          hasRole('admin')
+        );
+      }
+      
+      // Certificate verification history subcollection
+      match /verifications/{verificationId} {
+        allow read: if isAuthenticated() && isEmailVerified() && (
+          get(/databases/$(database)/documents/certificates/$(certificateId)).data.userId == request.auth.uid ||
+          hasRole('admin')
+        );
+        
+        allow create: if isAuthenticated() && isEmailVerified() &&
+                     request.resource.data.keys().hasAll(['verifiedAt', 'status', 'verifiedBy', 'verificationMethod']) &&
+                     request.resource.data.verifiedAt is timestamp &&
+                     request.resource.data.status in ['verified', 'invalid', 'expired', 'error', 'pending'] &&
+                     request.resource.data.verifiedBy == request.auth.uid &&
+                     request.resource.data.verificationMethod is string;
+        
+        // Only admin can update verification records
+        allow update: if hasRole('admin');
+        allow delete: if hasRole('admin');
+      }
+    }
+    
+    // Certificate audit logs - comprehensive logging for compliance
+    match /certificate_audit/{auditId} {
+      // Read access: Admin only for privacy and security
+      allow read: if hasRole('admin');
+      
+      // Create access: System creates audit entries automatically
+      allow create: if isAuthenticated() && isEmailVerified() &&
+                   request.resource.data.keys().hasAll(['userId', 'action', 'timestamp', 'success', 'certificateId']) &&
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.action is string &&
+                   request.resource.data.timestamp is timestamp &&
+                   request.resource.data.success is bool &&
+                   request.resource.data.certificateId is string;
+      
+      // No updates or deletes allowed for audit integrity
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    // Certificate statistics and analytics
+    match /certificate_stats/{userId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        userId == request.auth.uid || hasRole('admin')
+      );
+      
+      // System-generated statistics
+      allow write: if hasRole('admin') || (
+        isAuthenticated() && isEmailVerified() && userId == request.auth.uid
+      );
+      
+      allow delete: if hasRole('admin') || (
+        isAuthenticated() && isEmailVerified() && userId == request.auth.uid
+      );
+    }
+    
+    // Job-certificate matching requirements
+    match /job_requirements/{jobId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        hasRole('guard') || // Guards need to see requirements for applications
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        hasRole('admin')
+      );
+      
+      allow write: if isAuthenticated() && isEmailVerified() && (
+        (hasRole('company') && request.resource.data.companyId == request.auth.uid) ||
+        hasRole('admin')
+      ) &&
+      request.resource.data.keys().hasAll(['companyId', 'requiredCertificates', 'jobTitle', 'createdAt']) &&
+      request.resource.data.companyId is string &&
+      request.resource.data.requiredCertificates is list &&
+      request.resource.data.jobTitle is string &&
+      request.resource.data.createdAt is timestamp;
+      
+      allow delete: if isAuthenticated() && isEmailVerified() && (
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        hasRole('admin')
+      );
+    }
+    
+    // Certificate cache for performance optimization
+    match /certificate_cache/{cacheKey} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      // System manages cache entries
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                  request.resource.data.userId == request.auth.uid &&
+                  request.resource.data.expiresAt is timestamp;
+      
+      // Auto-cleanup of expired cache entries
+      allow delete: if isAuthenticated() && isEmailVerified();
+    }
+    
+    // GDPR compliance - data deletion and export requests
+    match /gdpr_requests/{requestId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() &&
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.keys().hasAll(['requestType', 'requestedAt', 'status', 'dataTypes']) &&
+                   request.resource.data.requestType in ['delete', 'export', 'modify'] &&
+                   request.resource.data.requestedAt is timestamp &&
+                   request.resource.data.status == 'pending' &&
+                   request.resource.data.dataTypes is list;
+      
+      // Only admin can process GDPR requests
+      allow update: if hasRole('admin') &&
+                   request.resource.data.status in ['pending', 'processing', 'completed', 'rejected'];
+      
+      allow delete: if hasRole('admin');
+    }
+    
+    // Error logs and system monitoring
+    match /error_logs/{errorId} {
+      // Admin-only read access for monitoring
+      allow read: if hasRole('admin');
+      
+      // Users can create error reports
+      allow create: if isAuthenticated() && isEmailVerified() &&
+                   request.resource.data.keys().hasAll(['userId', 'timestamp', 'error', 'context']) &&
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.timestamp is timestamp &&
+                   request.resource.data.error is string &&
+                   request.resource.data.context is string;
+      
+      // No updates for log integrity
+      allow update: if false;
+      // Admin can clean up old logs
+      allow delete: if hasRole('admin');
+    }
+    
+    // ========================================
+    // RATE LIMITING & SECURITY MONITORING
+    // ========================================
+    match /rate_limits/{userId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow write: if isAuthenticated() && isEmailVerified() && 
+                      userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['requests', 'windowStart', 'lastRequest']) &&
+                      request.resource.data.requests is number &&
+                      request.resource.data.requests <= 1000 && // Hard limit
+                      request.resource.data.windowStart is number &&
+                      request.resource.data.lastRequest is timestamp;
+      
+      allow delete: if hasRole('admin');
+    }
+
+    // Security violations tracking
+    match /security_violations/{userId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if isAuthenticated() &&
+                       request.resource.data.keys().hasAll(['userId', 'violationType', 'timestamp', 'count', 'severity']) &&
+                       request.resource.data.userId == userId &&
+                       request.resource.data.violationType in ['rate_limit', 'access_denied', 'invalid_data', 'suspicious_activity'] &&
+                       request.resource.data.timestamp is timestamp &&
+                       request.resource.data.count is number &&
+                       request.resource.data.severity in ['low', 'medium', 'high', 'critical'];
+      
+      allow update: if hasRole('admin') || 
+                       (isAuthenticated() && request.resource.data.userId == request.auth.uid &&
+                        request.resource.data.count == resource.data.count + 1);
+      
+      allow delete: if hasRole('admin');
+    }
+
+    // Real-time threat monitoring
+    match /threat_monitoring/{threatId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if isAuthenticated() &&
+                       request.resource.data.keys().hasAll(['userId', 'threatType', 'severity', 'timestamp', 'blocked']) &&
+                       request.resource.data.threatType in ['ddos', 'data_scraping', 'brute_force', 'privilege_escalation'] &&
+                       request.resource.data.severity in ['low', 'medium', 'high', 'critical'] &&
+                       request.resource.data.blocked is bool;
+      
+      allow update: if hasRole('admin');
+      allow delete: if hasRole('admin');
+    }
+
+    // ========================================
+    // COMPREHENSIVE AUDIT LOGGING
+    // ========================================
+    match /security_audit/{auditId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if isAuthenticated() &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'action', 'resourceType', 'resourceId', 
+                         'timestamp', 'success', 'riskLevel', 'metadata'
+                       ]) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.action is string &&
+                       request.resource.data.resourceType is string &&
+                       request.resource.data.timestamp is timestamp &&
+                       request.resource.data.success is bool &&
+                       request.resource.data.riskLevel in ['low', 'medium', 'high', 'critical'];
+      
+      // Audit logs are immutable
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Nederlandse compliance monitoring
+    match /compliance_monitoring/{monitorId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if hasRole('admin') &&
+                       request.resource.data.keys().hasAll([
+                         'complianceType', 'status', 'lastCheck', 'nextCheck', 
+                         'violations', 'riskScore'
+                       ]) &&
+                       request.resource.data.complianceType in [
+                         'GDPR', 'AVG', 'WPBR', 'Arbeidsrecht', 'BTW', 'KVK'
+                       ] &&
+                       request.resource.data.status in [
+                         'compliant', 'warning', 'violation', 'critical'
+                       ];
+      
+      allow update: if hasRole('admin');
+      allow delete: if hasRole('admin');
+    }
+
+    // ========================================
+    // PUBLIC CONFIGURATION - HARDENED ACCESS
+    // ========================================
+    match /app_config/{document=**} {
+      allow read: if isAuthenticated() && isWithinRateLimit('config_reads', 10);
+      allow write: if false; // Only admin via backend functions
+    }
+
+    // Emergency lockdown capability
+    match /emergency_lockdown/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('admin');
+    }
+
+    // ========================================
+    // DEFAULT DENY-ALL RULE
+    // All undefined paths are blocked
+    // ========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

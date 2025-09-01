@@ -1,0 +1,585 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 85.0.0 (88.0.0 available)
+  analyzer 7.7.1 (8.1.1 available)
+  characters 1.4.0 (1.4.1 available)
+  dart_jsonwebtoken 2.17.0 (3.2.0 available)
+  dart_style 3.1.1 (3.1.2 available)
+  file_picker 10.2.3 (10.3.2 available)
+  file_selector_macos 0.9.4+3 (0.9.4+4 available)
+  firebase_auth 6.0.0 (6.0.1 available)
+  firebase_auth_platform_interface 8.0.0 (8.1.0 available)
+  firebase_auth_web 6.0.0 (6.0.1 available)
+  flutter_local_notifications 18.0.1 (19.4.1 available)
+  flutter_local_notifications_linux 5.0.0 (6.0.0 available)
+  flutter_local_notifications_platform_interface 8.0.0 (9.1.0 available)
+  flutter_plugin_android_lifecycle 2.0.29 (2.0.30 available)
+  font_awesome_flutter 10.9.0 (10.10.0 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  google_maps_flutter_android 2.18.1 (2.18.2 available)
+  googleapis_auth 1.6.0 (2.0.0 available)
+  image_picker 1.1.2 (1.2.0 available)
+  image_picker_android 0.8.12+25 (0.8.13+1 available)
+  image_picker_for_web 3.0.6 (3.1.0 available)
+  image_picker_ios 0.8.12+2 (0.8.13 available)
+  image_picker_linux 0.2.1+2 (0.2.2 available)
+  image_picker_macos 0.2.1+2 (0.2.2 available)
+  image_picker_platform_interface 2.10.1 (2.11.0 available)
+  image_picker_windows 0.2.1+1 (0.2.2 available)
+  local_auth_android 1.0.51 (1.0.52 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.17.0 available)
+  otp 3.1.4 (3.2.0 available)
+  path_provider_android 2.2.17 (2.2.18 available)
+  path_provider_foundation 2.4.1 (2.4.2 available)
+  petitparser 6.1.0 (7.0.1 available)
+  pointycastle 3.9.1 (4.0.0 available)
+  process 5.0.3 (5.0.5 available)
+  provider 6.1.5 (6.1.5+1 available)
+  shared_preferences_android 2.4.11 (2.4.12 available)
+  sqflite_android 2.4.1 (2.4.2+2 available)
+  stripe_platform_interface 11.5.0 (12.0.0 available)
+  test 1.26.2 (1.26.3 available)
+  test_api 0.7.6 (0.7.7 available)
+  test_core 0.6.11 (0.6.12 available)
+  timezone 0.9.4 (0.10.1 available)
+  url_launcher_android 6.3.17 (6.3.18 available)
+  url_launcher_ios 6.3.3 (6.3.4 available)
+  url_launcher_macos 3.2.2 (3.2.3 available)
+  vm_service 15.0.0 (15.0.2 available)
+  watcher 1.1.2 (1.1.3 available)
+  xml 6.5.0 (6.6.1 available)
+Got dependencies!
+49 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing heelgoed-securyflex...                                
+
+   info - The imported package 'flutter_test' isn't a dependency of the importing package - lib\accessibility\accessibility_testing_utils.dart:3:8 - depend_on_referenced_packages
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\accessibility\high_contrast_themes.dart:279:9 - deprecated_member_use
+   info - 'onBackground' is deprecated and shouldn't be used. Use onSurface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\accessibility\high_contrast_themes.dart:280:9 - deprecated_member_use
+   info - 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre - lib\accessibility\high_contrast_themes.dart:284:9 - deprecated_member_use
+   info - The private field _recentAnnouncements could be 'final' - lib\accessibility\voice_accessibility_controller.dart:46:16 - prefer_final_fields
+warning - The left operand can't be null, so the right operand is never executed - lib\beveiliger_dashboard\widgets\guard_welcome_widget.dart:96:69 - dead_null_aware_expression
+   info - The private field _markers could be 'final' - lib\beveiliger_dashboard\widgets\mini_map_preview.dart:41:15 - prefer_final_fields
+   info - The private field _polylines could be 'final' - lib\beveiliger_dashboard\widgets\mini_map_preview.dart:42:17 - prefer_final_fields
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\beveiliger_dashboard\widgets\pending_reviews_widget.dart:159:34 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\beveiliger_notificaties\screens\notification_preferences_screen.dart:232:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\beveiliger_notificaties\screens\notification_preferences_screen.dart:360:25 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\beveiliger_notificaties\screens\notification_preferences_screen.dart:377:37 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\beveiliger_profiel\widgets\certificaten_widget.dart:89:7 - use_build_context_synchronously
+   info - The parameter name 'sum' matches a visible type name - lib\billing\models\belastingdienst_models.dart:556:17 - avoid_types_as_parameter_names
+   info - The parameter name 'count' matches a visible type name - lib\billing\models\belastingdienst_models.dart:556:22 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:205:48 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:206:50 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:302:40 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:303:49 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:420:45 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:421:58 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:422:54 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:425:42 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:426:51 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:427:46 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:434:56 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:464:45 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\billing\services\payment_history_service.dart:466:58 - avoid_types_as_parameter_names
+   info - Unnecessary braces in a string interpolation - lib\chat\services\file_attachment_service.dart:365:26 - unnecessary_brace_in_string_interps
+   info - Unnecessary braces in a string interpolation - lib\chat\services\file_attachment_service.dart:365:37 - unnecessary_brace_in_string_interps
+   info - Use interpolation to compose strings and values - lib\chat\services\message_search_service.dart:379:44 - prefer_interpolation_to_compose_strings
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\chat\widgets\floating_attachment_menu.dart:287:20 - sized_box_for_whitespace
+   info - The private field _controllers could be 'final' - lib\chat\widgets\input_field_animations.dart:314:29 - prefer_final_fields
+   info - String literals shouldn't be concatenated by the '+' operator - lib\core\monitoring_example.dart:57:44 - prefer_adjacent_string_concatenation
+   info - String literals shouldn't be concatenated by the '+' operator - lib\core\monitoring_example.dart:89:51 - prefer_adjacent_string_concatenation
+   info - The 'child' argument should be last in widget constructor invocations - lib\core\monitoring_example.dart:209:19 - sort_child_properties_last
+   info - The 'child' argument should be last in widget constructor invocations - lib\core\monitoring_example.dart:217:19 - sort_child_properties_last
+   info - The 'child' argument should be last in widget constructor invocations - lib\core\monitoring_example.dart:225:19 - sort_child_properties_last
+   info - Unnecessary braces in a string interpolation - lib\core\shared_animation_controller.dart:249:49 - unnecessary_brace_in_string_interps
+   info - Don't invoke 'print' in production code - lib\core\unified_components.dart:108:7 - avoid_print
+   info - Dangling library doc comment - lib\guards\shared\guard_spacing.dart:1:1 - dangling_library_doc_comments
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:43:41 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:47:36 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:51:37 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:55:40 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:59:41 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:64:39 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:67:41 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:70:41 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:140:38 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:143:40 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:146:42 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\guards\shared\guard_spacing.dart:149:44 - unnecessary_const
+warning - The value of the field '_hasRelevantExperience' isn't used - lib\marketplace\dialogs\premium_application_dialog.dart:55:8 - unused_field
+   info - Statements in an if should be enclosed in a block - lib\marketplace\services\enhanced_job_location_service.dart:413:40 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\marketplace\services\enhanced_job_location_service.dart:414:38 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\marketplace\services\enhanced_job_location_service.dart:419:48 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\marketplace\services\enhanced_job_location_service.dart:420:46 - curly_braces_in_flow_control_structures
+   info - The type name 'iDEALPaymentCreated' isn't an UpperCamelCase identifier - lib\payments\bloc\payment_bloc.dart:293:7 - camel_case_types
+   info - The type name 'iDEALBanksLoaded' isn't an UpperCamelCase identifier - lib\payments\bloc\payment_bloc.dart:304:7 - camel_case_types
+   info - The type name 'iDEALPayment' isn't an UpperCamelCase identifier - lib\payments\models\payment_models.dart:176:7 - camel_case_types
+   info - The type name 'iDEALPaymentResult' isn't an UpperCamelCase identifier - lib\payments\models\payment_models.dart:372:7 - camel_case_types
+   info - The type name 'iDEALBank' isn't an UpperCamelCase identifier - lib\payments\models\payment_models.dart:411:7 - camel_case_types
+   info - The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/foundation.dart' - lib\payments\security\payment_encryption_service.dart:3:8 - unnecessary_import
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\dutch_invoice_service.dart:174:51 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\dutch_invoice_service.dart:175:52 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\dutch_invoice_service.dart:269:51 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\dutch_invoice_service.dart:270:52 - avoid_types_as_parameter_names
+   info - The type name 'iDEALPaymentService' isn't an UpperCamelCase identifier - lib\payments\services\ideal_payment_service.dart:24:7 - camel_case_types
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\payment_integration_service.dart:306:63 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\payment_integration_service.dart:307:65 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\sepa_payment_service.dart:166:13 - avoid_types_as_parameter_names
+   info - 'text' is deprecated and shouldn't be used. Use [value] to access the textual content of this node, or [innerText] to access the textual content of its descendants - lib\payments\services\sepa_payment_service.dart:307:56 - deprecated_member_use
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\sepa_payment_service.dart:376:51 - avoid_types_as_parameter_names
+   info - 'text' is deprecated and shouldn't be used. Use [value] to access the textual content of this node, or [innerText] to access the textual content of its descendants - lib\payments\services\sepa_payment_service.dart:555:42 - deprecated_member_use
+   info - 'text' is deprecated and shouldn't be used. Use [value] to access the textual content of this node, or [innerText] to access the textual content of its descendants - lib\payments\services\sepa_payment_service.dart:556:56 - deprecated_member_use
+   info - 'text' is deprecated and shouldn't be used. Use [value] to access the textual content of this node, or [innerText] to access the textual content of its descendants - lib\payments\services\sepa_payment_service.dart:581:53 - deprecated_member_use
+   info - 'text' is deprecated and shouldn't be used. Use [value] to access the textual content of this node, or [innerText] to access the textual content of its descendants - lib\payments\services\sepa_payment_service.dart:590:59 - deprecated_member_use
+   info - 'text' is deprecated and shouldn't be used. Use [value] to access the textual content of this node, or [innerText] to access the textual content of its descendants - lib\payments\services\sepa_payment_service.dart:599:57 - deprecated_member_use
+   info - The parameter name 'sum' matches a visible type name - lib\payments\services\sepa_payment_service.dart:706:11 - avoid_types_as_parameter_names
+warning - The value of the field '_webhookTimeout' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:31:25 - unused_field
+warning - The value of the field '_maxRetryAttempts' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:32:20 - unused_field
+warning - The value of the field '_retryDelay' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:33:25 - unused_field
+warning - The value of the local variable 'paymentIntentId' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:369:11 - unused_local_variable
+warning - The value of the local variable 'amount' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:370:11 - unused_local_variable
+warning - The value of the local variable 'paymentIntentId' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:389:11 - unused_local_variable
+warning - The value of the local variable 'failureCode' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:390:11 - unused_local_variable
+warning - The value of the local variable 'failureMessage' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:391:11 - unused_local_variable
+warning - The value of the local variable 'paymentIntentId' isn't used - lib\payments\webhooks\payment_webhook_handler.dart:410:11 - unused_local_variable
+warning - Unused import: '../bloc/payment_bloc.dart' - lib\payments\widgets\payment_components.dart:5:8 - unused_import
+warning - This default clause is covered by the previous cases - lib\payments\widgets\payment_components.dart:411:7 - unreachable_switch_default
+warning - This default clause is covered by the previous cases - lib\payments\widgets\payment_components.dart:435:7 - unreachable_switch_default
+   info - The parameter name 'sum' matches a visible type name - lib\reputation\services\reputation_calculation_service.dart:225:33 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\reputation\services\reputation_calculation_service.dart:271:56 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\reputation\services\reputation_calculation_service.dart:425:64 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\reputation\services\reputation_calculation_service.dart:628:31 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\reputation\services\reputation_calculation_service.dart:669:73 - avoid_types_as_parameter_names
+   info - The parameter name 'sum' matches a visible type name - lib\reputation\services\reputation_calculation_service.dart:670:80 - avoid_types_as_parameter_names
+warning - The value of the local variable 'colorScheme' isn't used - lib\reputation\widgets\reputation_score_widget.dart:585:11 - unused_local_variable
+warning - The value of the field '_disputesCollection' isn't used - lib\reviews\services\review_management_service.dart:11:23 - unused_field
+warning - The operand can't be 'null', so the condition is always 'true' - lib\schedule\architecture\schedule_data_flow.dart:411:17 - unnecessary_null_comparison
+warning - Unnecessary type check; the result is always 'true' - lib\schedule\architecture\schedule_data_flow.dart:507:12 - unnecessary_type_check
+warning - The value of the local variable 'swapRequest' isn't used - lib\schedule\blocs\schedule_bloc.dart:376:13 - unused_local_variable
+warning - Unused import: '../blocs/schedule_bloc.dart' - lib\schedule\integration\main_app_integration.dart:9:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\schedule\integration\main_app_integration.dart:80:11 - use_build_context_synchronously
+warning - Unnecessary type check; the result is always 'false' - lib\schedule\integration\main_app_integration.dart:211:17 - unnecessary_type_check
+   info - Don't use 'BuildContext's across async gaps - lib\schedule\integration\main_app_integration.dart:305:34 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\schedule\integration\main_app_integration.dart:310:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\schedule\integration\main_app_integration.dart:317:28 - use_build_context_synchronously
+warning - Unnecessary type check; the result is always 'true' - lib\schedule\integration\main_app_integration.dart:385:13 - unnecessary_type_check
+warning - The declaration '_buildTimeClockError' isn't referenced - lib\schedule\integration\main_app_integration.dart:710:17 - unused_element
+warning - The declaration '_buildDashboardLoading' isn't referenced - lib\schedule\integration\main_app_integration.dart:757:17 - unused_element
+warning - The declaration '_buildDashboardError' isn't referenced - lib\schedule\integration\main_app_integration.dart:766:17 - unused_element
+warning - The declaration '_buildStatusLoading' isn't referenced - lib\schedule\integration\main_app_integration.dart:809:17 - unused_element
+warning - The declaration '_buildStatusError' isn't referenced - lib\schedule\integration\main_app_integration.dart:826:17 - unused_element
+   info - The prefix 'UnifiedTheme' isn't a lower_case_with_underscores identifier - lib\schedule\screens\schedule_main_screen.dart:5:45 - library_prefixes
+   info - The prefix 'TimeClock' isn't a lower_case_with_underscores identifier - lib\schedule\screens\schedule_main_screen.dart:7:47 - library_prefixes
+   info - The prefix 'GPS' isn't a lower_case_with_underscores identifier - lib\schedule\screens\schedule_main_screen.dart:10:64 - library_prefixes
+   info - Don't invoke 'print' in production code - lib\schedule\services\calendar_sync_service.dart:65:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\calendar_sync_service.dart:359:7 - avoid_print
+   info - Use interpolation to compose strings and values - lib\schedule\services\calendar_sync_service.dart:443:12 - prefer_interpolation_to_compose_strings
+   info - Unnecessary use of string interpolation - lib\schedule\services\calendar_sync_service.dart:478:20 - unnecessary_string_interpolations
+   info - Don't invoke 'print' in production code - lib\schedule\services\calendar_sync_service.dart:572:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\calendar_sync_service.dart:594:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\calendar_sync_service.dart:595:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\calendar_sync_service.dart:616:7 - avoid_print
+warning - Unused import: '../models/shift_model.dart' - lib\schedule\services\cao_calculation_service.dart:5:8 - unused_import
+warning - Unused import: '../models/leave_request_model.dart' - lib\schedule\services\cao_calculation_service.dart:6:8 - unused_import
+warning - The value of the field '_standardWorkWeek' isn't used - lib\schedule\services\cao_calculation_service.dart:22:23 - unused_field
+warning - The value of the field '_saltPrefix' isn't used - lib\schedule\services\location_crypto_service.dart:20:23 - unused_field
+warning - The value of the field '_keyVersionPrefix' isn't used - lib\schedule\services\location_crypto_service.dart:21:23 - unused_field
+warning - The value of the field '_saltLength' isn't used - lib\schedule\services\location_crypto_service.dart:24:20 - unused_field
+   info - Don't invoke 'print' in production code - lib\schedule\services\location_crypto_service.dart:342:5 - avoid_print
+warning - The value of the field '_defaultGeofenceRadius' isn't used - lib\schedule\services\location_verification_service.dart:30:23 - unused_field
+warning - The value of the field '_mockLocationThreshold' isn't used - lib\schedule\services\location_verification_service.dart:32:23 - unused_field
+warning - The value of the field '_recentGyroData' isn't used - lib\schedule\services\location_verification_service.dart:43:30 - unused_field
+   info - Don't invoke 'print' in production code - lib\schedule\services\location_verification_service.dart:214:7 - avoid_print
+   info - 'timeLimit' is deprecated and shouldn't be used. use settings parameter with AndroidSettings, AppleSettings, WebSettings, or LocationSettings - lib\schedule\services\location_verification_service.dart:255:9 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed - lib\schedule\services\location_verification_service.dart:263:40 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\schedule\services\location_verification_service.dart:264:42 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\schedule\services\location_verification_service.dart:360:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\location_verification_service.dart:378:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\location_verification_service.dart:397:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\location_verification_service.dart:503:7 - avoid_print
+warning - Unused import: '../models/shift_model.dart' - lib\schedule\services\payroll_export_service.dart:11:8 - unused_import
+warning - The value of the field '_maxDailyHours' isn't used - lib\schedule\services\payroll_export_service.dart:37:25 - unused_field
+warning - The value of the field '_regularWeeklyHours' isn't used - lib\schedule\services\payroll_export_service.dart:38:25 - unused_field
+warning - The value of the field '_maxWeeklyHours' isn't used - lib\schedule\services\payroll_export_service.dart:39:25 - unused_field
+warning - The value of the local variable 'totalBreakDeductions' isn't used - lib\schedule\services\payroll_export_service.dart:124:12 - unused_local_variable
+   info - Don't invoke 'print' in production code - lib\schedule\services\payroll_export_service.dart:455:7 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\schedule\services\schedule_service_provider.dart:291:22 - use_build_context_synchronously
+warning - Unused import: '../models/time_entry_model.dart' - lib\schedule\services\shift_management_service.dart:7:8 - unused_import
+warning - The value of the field '_currentShiftId' isn't used - lib\schedule\services\time_tracking_service.dart:26:11 - unused_field
+warning - The value of the field '_geofenceRadius' isn't used - lib\schedule\services\time_tracking_service.dart:30:23 - unused_field
+   info - 'timeLimit' is deprecated and shouldn't be used. use settings parameter with AndroidSettings, AppleSettings, WebSettings, or LocationSettings - lib\schedule\services\time_tracking_service.dart:449:9 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed - lib\schedule\services\time_tracking_service.dart:473:40 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\schedule\services\time_tracking_service.dart:474:42 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\schedule\services\time_tracking_service.dart:529:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\schedule\services\time_tracking_service.dart:563:7 - avoid_print
+   info - Closure can't be 'null' because it might be invoked - lib\schedule\services\time_tracking_service.dart:772:11 - null_closures
+warning - The operand can't be 'null', so the condition is always 'true' - lib\schedule\services\time_tracking_service.dart:775:32 - unnecessary_null_comparison
+   info - Don't invoke 'print' in production code - lib\schedule\services\time_tracking_service.dart:1058:11 - avoid_print
+warning - Unused import: '../../../unified_header.dart' - lib\schedule\widgets\calendar\shift_calendar_widget.dart:6:8 - unused_import
+warning - Unused import: '../../blocs/schedule_bloc.dart' - lib\schedule\widgets\calendar\shift_calendar_widget.dart:8:8 - unused_import
+warning - Unused import: 'shift_detail_popup.dart' - lib\schedule\widgets\calendar\shift_calendar_widget.dart:13:8 - unused_import
+warning - The value of the local variable 'daysInMonth' isn't used - lib\schedule\widgets\calendar\shift_calendar_widget.dart:252:11 - unused_local_variable
+warning - The operand can't be 'null', so the condition is always 'true' - lib\schedule\widgets\calendar\shift_calendar_widget.dart:467:32 - unnecessary_null_comparison
+warning - The value of the field '_keyLength' isn't used - lib\shared\services\encryption_service.dart:12:20 - unused_field
+warning - Unused import: 'dart:math' - lib\unified_components\contextual_micro_moments_system.dart:4:8 - unused_import
+warning - Unused import: 'premium_micro_interactions.dart' - lib\unified_components\contextual_micro_moments_system.dart:8:8 - unused_import
+   info - The private field _userContext could be 'final' - lib\unified_components\contextual_micro_moments_system.dart:28:24 - prefer_final_fields
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:269:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:276:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:292:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:293:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:294:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:299:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:300:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:346:67 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:473:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:487:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:516:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\contextual_micro_moments_system.dart:531:53 - deprecated_member_use
+warning - Unused import: 'premium_glass_system.dart' - lib\unified_components\dynamic_visual_enhancements.dart:7:8 - unused_import
+warning - The value of the field '_isPressed' isn't used - lib\unified_components\enhanced_glassmorphism_2025.dart:472:8 - unused_field
+warning - Unused import: 'premium_color_system.dart' - lib\unified_components\material3_adaptive_components.dart:4:8 - unused_import
+warning - Unused import: '../unified_theme_system.dart' - lib\unified_components\premium_glass_system.dart:4:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\premium_micro_interactions.dart:759:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\premium_micro_interactions.dart:802:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\premium_micro_interactions.dart:808:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\premium_micro_interactions.dart:827:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\premium_micro_interactions.dart:828:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\premium_micro_interactions.dart:832:56 - deprecated_member_use
+   info - The import of 'package:flutter/scheduler.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\unified_components\ultra_smooth_animation_system.dart:2:8 - unnecessary_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:158:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:224:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:243:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:244:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:245:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:249:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:330:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:330:102 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:379:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:384:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\unified_components\ultra_smooth_animation_system.dart:453:35 - deprecated_member_use
+warning - The value of the local variable 'theme' isn't used - lib\unified_dialog_system.dart:130:11 - unused_local_variable
+warning - Unused import: 'package:flutter/foundation.dart' - lib\workflow\bloc\workflow_orchestration_bloc.dart:3:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\workflow\screens\job_completion_screen.dart:271:36 - use_build_context_synchronously
+warning - Unused import: '../../auth/services/input_validation_service.dart' - lib\workflow\services\job_completion_payment_orchestrator.dart:14:8 - unused_import
+warning - The value of the field '_encryptionService' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:66:27 - unused_field
+warning - The value of the field '_earningsService' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:67:33 - unused_field
+warning - The value of the field '_invoiceService' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:68:29 - unused_field
+warning - The value of the field '_sepaService' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:69:28 - unused_field
+warning - The value of the field '_paymentIntegrationService' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:70:35 - unused_field
+warning - The value of the field '_btwRate' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:75:23 - unused_field
+warning - The value of the field '_paymentTermDays' isn't used - lib\workflow\services\job_completion_payment_orchestrator.dart:76:20 - unused_field
+warning - Unused import: '../../beveiliger_profiel/models/profile_stats_data.dart' - lib\workflow\services\job_completion_rating_service.dart:7:8 - unused_import
+warning - The value of the field '_auth' isn't used - lib\workflow\services\job_completion_rating_service.dart:24:29 - unused_field
+warning - The value of the field '_encryptionService' isn't used - lib\workflow\services\job_completion_rating_service.dart:27:27 - unused_field
+   info - The parameter name 'sum' matches a visible type name - lib\workflow\services\job_completion_rating_service.dart:154:54 - avoid_types_as_parameter_names
+warning - The value of the local variable 'currentProfile' isn't used - lib\workflow\services\job_completion_rating_service.dart:232:15 - unused_local_variable
+warning - The value of the field '_auth' isn't used - lib\workflow\services\workflow_orchestration_service.dart:23:22 - unused_field
+warning - The value of the field '_encryptionService' isn't used - lib\workflow\services\workflow_orchestration_service.dart:24:27 - unused_field
+warning - The value of the field '_jobRepository' isn't used - lib\workflow\services\workflow_orchestration_service.dart:26:23 - unused_field
+warning - The value of the field '_applicationService' isn't used - lib\workflow\services\workflow_orchestration_service.dart:27:28 - unused_field
+warning - The value of the field '_kvkService' isn't used - lib\workflow\services\workflow_orchestration_service.dart:28:23 - unused_field
+warning - The value of the field '_defaultRatingWindowDays' isn't used - lib\workflow\services\workflow_orchestration_service.dart:37:20 - unused_field
+warning - The value of the field '_contractExpiryNotificationDays' isn't used - lib\workflow\services\workflow_orchestration_service.dart:38:20 - unused_field
+warning - The value of the field '_encryptionService' isn't used - lib\workflow\services\workflow_payment_service.dart:13:27 - unused_field
+   info - The import of '../../unified_design_tokens.dart' is unnecessary because all of the used elements are also provided by the import of '../../core/unified_components.dart' - lib\workflow\widgets\job_completion_rating_widget.dart:6:8 - unnecessary_import
+   info - The import of '../../unified_theme_system.dart' is unnecessary because all of the used elements are also provided by the import of '../../core/unified_components.dart' - lib\workflow\widgets\job_completion_rating_widget.dart:7:8 - unnecessary_import
+   info - Dangling library doc comment - scripts\automated_color_migration.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:55:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:56:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:62:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:75:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:76:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:83:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:91:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:119:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:126:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\automated_color_migration.dart:235:5 - avoid_print
+   info - Dangling library doc comment - scripts\design_system_validator.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:41:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:42:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:61:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:62:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:63:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:67:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:68:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:74:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:108:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:193:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:211:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:215:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:236:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:240:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:256:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:260:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:279:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:283:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:291:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:412:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:413:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\design_system_validator.dart:414:5 - avoid_print
+warning - Unused import: 'dart:convert' - scripts\fix_deprecated_withopacity.dart:6:8 - unused_import
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:9:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:28:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:33:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:34:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:35:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:36:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:37:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:38:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:39:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:42:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:43:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:45:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_deprecated_withopacity.dart:77:5 - avoid_print
+   info - Dangling library doc comment - scripts\font_consolidation.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:33:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:49:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:50:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:51:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:58:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:62:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:84:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:119:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:126:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:166:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:172:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:195:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:197:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:199:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:201:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:210:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:217:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_consolidation.dart:289:5 - avoid_print
+   info - Dangling library doc comment - scripts\font_family_migration.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:19:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:20:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:33:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:34:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:35:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:39:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:69:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:74:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:78:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:107:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:113:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\font_family_migration.dart:172:5 - avoid_print
+   info - Dangling library doc comment - scripts\generate_documentation.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:28:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:29:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:49:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:50:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:51:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:55:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:130:5 - avoid_print
+   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - scripts\generate_documentation.dart:156:32 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - scripts\generate_documentation.dart:177:32 - deprecated_member_use
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:282:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:440:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:523:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:702:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:905:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:1021:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\generate_documentation.dart:1413:5 - avoid_print
+   info - Dangling library doc comment - scripts\perfect_design_system_transform.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:33:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:34:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:35:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:36:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:37:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:41:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:61:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:65:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:66:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:68:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:81:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:91:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:106:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:111:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:118:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:135:5 - avoid_print
+   info - The variable name '_executePhase1_CriticalFixes' isn't a lowerCamelCase identifier - scripts\perfect_design_system_transform.dart:150:23 - non_constant_identifier_names
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:151:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:152:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:171:5 - avoid_print
+   info - The variable name '_executePhase2_PerformanceOptimization' isn't a lowerCamelCase identifier - scripts\perfect_design_system_transform.dart:174:23 - non_constant_identifier_names
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:175:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:176:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:210:5 - avoid_print
+   info - The variable name '_executePhase3_QualityCompliance' isn't a lowerCamelCase identifier - scripts\perfect_design_system_transform.dart:213:23 - non_constant_identifier_names
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:214:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:215:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:240:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:244:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:245:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:255:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:259:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:267:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:279:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:292:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:301:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:309:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:324:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:329:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:336:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:337:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:338:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:339:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:340:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:341:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:342:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:343:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:344:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:345:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:346:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:347:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:348:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:349:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:350:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:351:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:352:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:353:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\perfect_design_system_transform.dart:354:5 - avoid_print
+   info - Dangling library doc comment - scripts\quick_setup_and_transform.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:14:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:15:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:27:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:28:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:59:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:70:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:71:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:72:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:74:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:79:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:91:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:93:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:99:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:104:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:105:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:121:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:122:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:131:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:133:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:139:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:142:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:147:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:148:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:153:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:156:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:161:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:162:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:167:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:170:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:175:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:176:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:183:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:185:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:188:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:193:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:196:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:366:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\quick_setup_and_transform.dart:368:7 - avoid_print
+   info - Dangling library doc comment - scripts\simple_transform.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:8:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:9:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:23:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:24:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:25:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:26:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:27:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:28:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:29:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:30:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:31:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:32:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:36:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:211:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:215:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:239:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:240:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:243:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:244:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:249:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:437:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:441:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\simple_transform.dart:566:3 - avoid_print
+   info - Dangling library doc comment - scripts\spacing_migration_priority.dart:3:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:53:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:54:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:67:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:68:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:69:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:73:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:98:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:101:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:105:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:109:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:145:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:147:7 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:152:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\spacing_migration_priority.dart:237:5 - avoid_print
+warning - Unused import: 'package:securyflex_app/shared/models/guard_status.dart' - test\accessibility\accessibility_test.dart:7:8 - unused_import
+warning - Unused import: 'package:securyflex_app/accessibility/enhanced_accessibility_helper.dart' - test\accessibility\enhanced_chat_accessibility_test.dart:5:8 - unused_import
+warning - Unused import: 'package:securyflex_app/chat/widgets/unified_conversation_card.dart' - test\accessibility\enhanced_chat_accessibility_test.dart:12:8 - unused_import
+   info - 'red' is deprecated and shouldn't be used. Use (*.r * 255.0).round() & 0xff - test\accessibility\enhanced_chat_accessibility_test.dart:509:33 - deprecated_member_use
+   info - 'green' is deprecated and shouldn't be used. Use (*.g * 255.0).round() & 0xff - test\accessibility\enhanced_chat_accessibility_test.dart:510:33 - deprecated_member_use
+   info - 'blue' is deprecated and shouldn't be used. Use (*.b * 255.0).round() & 0xff - test\accessibility\enhanced_chat_accessibility_test.dart:511:33 - deprecated_member_use
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:62:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:63:9 - avoid_print
+   info - Unnecessary braces in a string interpolation - test\animation_controller_optimization_test.dart:63:54 - unnecessary_brace_in_string_interps
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:64:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:65:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:223:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:224:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:225:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\animation_controller_optimization_test.dart:226:9 - avoid_print
+   info - Constructors for public widgets should have a named 'key' parameter - test\animation_controller_optimization_test.dart:233:7 - use_key_in_widget_constructors
+warning - Unused import: 'package:securyflex_app/beveiliger_dashboard/models/weather_data.dart' - test\beveiliger_dashboard\simple_dashboard_test.dart:16:8 - unused_import
+warning - Unused import: 'package:securyflex_app/beveiliger_dashboard/models/performance_analytics.dart' - test\beveiliger_dashboard\simple_dashboard_test.dart:17:8 - unused_import
+warning - The value of the local variable 'avgHighPayApplicants' isn't used - test\marketplace\services\mock_job_data_service_test.dart:377:17 - unused_local_variable
+warning - The value of the local variable 'avgLowPayApplicants' isn't used - test\marketplace\services\mock_job_data_service_test.dart:380:17 - unused_local_variable
+   info - Don't invoke 'print' in production code - test\marketplace\services\mock_job_simple_test.dart:26:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\marketplace\services\mock_job_simple_test.dart:36:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\marketplace\services\mock_job_simple_test.dart:50:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\marketplace\services\mock_job_simple_test.dart:60:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\marketplace\services\mock_job_simple_test.dart:73:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\marketplace\services\mock_job_simple_test.dart:86:7 - avoid_print
+   info - Unnecessary braces in a string interpolation - test\marketplace\services\mock_job_simple_test.dart:86:27 - unnecessary_brace_in_string_interps
+   info - Don't invoke 'print' in production code - test\modern_dashboard_test.dart:232:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\modern_dashboard_test.dart:250:9 - avoid_print
+warning - The class 'Query' shouldn't be extended, mixed in, or implemented because it's sealed - test\payments\sepa_payment_service_test.dart:16:1 - subtype_of_sealed_class
+warning - The class 'DocumentReference' shouldn't be extended, mixed in, or implemented because it's sealed - test\payments\sepa_payment_service_test.dart:17:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\payments\sepa_payment_service_test.dart:495:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\payments\sepa_payment_service_test.dart:496:1 - subtype_of_sealed_class
+warning - The class 'QueryDocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\payments\sepa_payment_service_test.dart:496:1 - subtype_of_sealed_class
+warning - The class 'Query' shouldn't be extended, mixed in, or implemented because it's sealed - test\payments\sepa_payment_service_test.dart:498:1 - subtype_of_sealed_class
+warning - The value of the local variable 'service' isn't used - test\reputation\reputation_system_integration_test.dart:7:39 - unused_local_variable
+warning - Unused import: 'package:mockito/mockito.dart' - test\reputation\services\reputation_calculation_service_test.dart:2:8 - unused_import
+warning - Unused import: 'reputation_calculation_service_test.mocks.dart' - test\reputation\services\reputation_calculation_service_test.dart:12:8 - unused_import
+warning - The diagnostic 'must_be_immutable' doesn't need to be ignored here because it's already being ignored - test\reputation\services\reputation_calculation_service_test.mocks.dart:1071:12 - duplicate_ignore
+warning - The diagnostic 'must_be_immutable' doesn't need to be ignored here because it's already being ignored - test\reputation\services\reputation_calculation_service_test.mocks.dart:1498:12 - duplicate_ignore
+warning - The diagnostic 'must_be_immutable' doesn't need to be ignored here because it's already being ignored - test\reputation\services\reputation_calculation_service_test.mocks.dart:1793:12 - duplicate_ignore
+   info - The local variable '_createTestJobSite' starts with an underscore - test\schedule\services\location_verification_service_test.dart:13:17 - no_leading_underscores_for_local_identifiers
+warning - The value of the local variable 'service' isn't used - test\schedule\services\time_tracking_service_test.dart:94:15 - unused_local_variable
+warning - The value of the local variable 'startTime' isn't used - test\schedule\services\time_tracking_service_test.dart:106:15 - unused_local_variable
+warning - The value of the local variable 'endTime' isn't used - test\schedule\services\time_tracking_service_test.dart:107:15 - unused_local_variable
+warning - The value of the local variable 'service' isn't used - test\schedule\services\time_tracking_service_test.dart:131:15 - unused_local_variable
+warning - The value of the local variable 'lat1' isn't used - test\schedule\services\time_tracking_service_test.dart:134:15 - unused_local_variable
+warning - The value of the local variable 'lon1' isn't used - test\schedule\services\time_tracking_service_test.dart:135:15 - unused_local_variable
+warning - The value of the local variable 'lat2' isn't used - test\schedule\services\time_tracking_service_test.dart:136:15 - unused_local_variable
+warning - The value of the local variable 'lon2' isn't used - test\schedule\services\time_tracking_service_test.dart:137:15 - unused_local_variable
+warning - The value of the local variable 'utcTime' isn't used - test\schedule\services\time_tracking_service_test.dart:191:15 - unused_local_variable
+warning - The class 'Query' shouldn't be extended, mixed in, or implemented because it's sealed - test\workflow\services\workflow_orchestration_service_test.dart:41:1 - subtype_of_sealed_class
+warning - The class 'DocumentReference' shouldn't be extended, mixed in, or implemented because it's sealed - test\workflow\services\workflow_orchestration_service_test.dart:42:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\workflow\services\workflow_orchestration_service_test.dart:43:1 - subtype_of_sealed_class
+   info - Parameters ''firestore', 'auth', 'encryptionService', 'notificationService', 'jobRepository', 'applicationService', 'kvkService', 'wpbrService', 'paymentOrchestrator', and 'chatService'' could be super parameters - test\workflow\services\workflow_orchestration_service_test.dart:56:3 - use_super_parameters
+
+527 issues found. (ran in 2.8s)

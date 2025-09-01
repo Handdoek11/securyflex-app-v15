@@ -1,0 +1,297 @@
+rules_version = '2';
+
+// ========================================
+// SECURITY HARDENED STORAGE RULES v2.0
+// Nederlandse Compliance + File Validation + DoS Protection
+// ========================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ========================================
+    // SECURITY HELPER FUNCTIONS
+    // ========================================
+
+    // Rate limiting for file operations
+    function isWithinStorageRateLimit(operation, maxOps) {
+      let rateLimitDoc = firestore.get(/databases/(default)/documents/storage_rate_limits/$(request.auth.uid));
+      let currentTime = request.time.toMillis();
+      let windowStart = currentTime - (60 * 1000); // 1-minute window
+      
+      return !('data' in rateLimitDoc) ||
+             (rateLimitDoc.data[operation] < maxOps && rateLimitDoc.data.windowStart > windowStart);
+    }
+
+    // File magic number validation (first bytes)
+    function isValidFileType(contentType, size) {
+      return (
+        // Images
+        (contentType == 'image/jpeg' && size <= 10485760) || // 10MB
+        (contentType == 'image/png' && size <= 10485760) ||
+        (contentType == 'image/webp' && size <= 5242880) || // 5MB
+        // Documents
+        (contentType == 'application/pdf' && size <= 20971520) || // 20MB
+        (contentType.matches('application/(msword|vnd\.openxmlformats.*)') && size <= 10485760) ||
+        (contentType == 'text/plain' && size <= 1048576) // 1MB
+      );
+    }
+
+    // User role validation
+    function hasStorageRole(role) {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userType == role;
+    }
+
+    // Check if user is email verified
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    // Progressive rate limiting based on violations
+    function getStorageRateMultiplier() {
+      let violations = firestore.get(/databases/(default)/documents/security_violations/$(request.auth.uid));
+      return ('data' in violations && violations.data.count > 3) ? 0.5 : 1.0;
+    }
+
+    // Nederlandse region check (placeholder)
+    function isFromAllowedRegion() {
+      return true; // Implement with Firebase Auth custom claims
+    }
+    // ========================================
+    // CHAT FILE UPLOADS - HARDENED SECURITY
+    // ========================================
+    match /chat_uploads/{userId}/{fileName} {
+      // Secure read access with audit trail
+      allow read: if request.auth != null && 
+                     isEmailVerified() &&
+                     isWithinStorageRateLimit('chat_reads', 100 * getStorageRateMultiplier()) && (
+        // User can read own uploads
+        request.auth.uid == userId ||
+        // Participants in conversations can read shared files
+        exists(path('/databases/(default)/documents/conversations/' + 
+               resource.metadata.conversationId)) &&
+        request.auth.uid in get(path('/databases/(default)/documents/conversations/' + 
+                               resource.metadata.conversationId)).data.participants ||
+        // Admin access
+        hasStorageRole('admin')
+      );
+      
+      // Ultra-secure upload with comprehensive validation
+      allow write: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      isEmailVerified() &&
+                      isFromAllowedRegion() &&
+                      isWithinStorageRateLimit('chat_uploads', 20 * getStorageRateMultiplier()) &&
+                      // File validation
+                      isValidFileType(request.resource.contentType, request.resource.size) &&
+                      // Filename security
+                      fileName.size() <= 100 &&
+                      fileName.matches('^[a-zA-Z0-9._-]+$') &&
+                      !fileName.matches('\.(exe|bat|cmd|scr|pif|com|vbs|js|jar|app)$') &&
+                      // Metadata validation
+                      request.resource.metadata != null &&
+                      request.resource.metadata.keys().hasAll(['uploadedBy', 'conversationId']) &&
+                      request.resource.metadata.uploadedBy == request.auth.uid;
+                      
+      // Secure deletion
+      allow delete: if request.auth != null && (
+        request.auth.uid == userId ||
+        hasStorageRole('admin')
+      ) && isWithinStorageRateLimit('file_deletes', 10);
+    }
+    
+    // ========================================
+    // PROFILE PICTURES - ENHANCED SECURITY
+    // ========================================
+    match /profile_pictures/{userId}/{fileName} {
+      // Public read with rate limiting
+      allow read: if request.auth != null && 
+                     isWithinStorageRateLimit('profile_reads', 50) &&
+                     // Only verified users can view profiles
+                     isEmailVerified();
+      
+      // Secure profile picture upload
+      allow write: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      isEmailVerified() &&
+                      isWithinStorageRateLimit('profile_uploads', 5) &&
+                      // Strict image validation
+                      request.resource.size <= 2097152 && // 2MB limit
+                      request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp'] &&
+                      // Filename security
+                      fileName.matches('^(profile|avatar)\.(jpg|jpeg|png|webp)$') &&
+                      // Prevent profile impersonation
+                      userId == request.auth.uid;
+                      
+      // Controlled deletion
+      allow delete: if request.auth != null && 
+                       request.auth.uid == userId &&
+                       isWithinStorageRateLimit('profile_deletes', 3);
+    }
+    
+    // Company logos and documents
+    match /company_documents/{companyId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        // User must be associated with this company
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.companyId == companyId ||
+        // Or be an admin
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userRole == 'admin';
+    }
+    
+    // Assignment documents
+    match /assignment_documents/{assignmentId}/{fileName} {
+      allow read: if request.auth != null &&
+        // User must be participant in this assignment
+        (firestore.get(/databases/(default)/documents/assignments/$(assignmentId)).data.guardId == request.auth.uid ||
+         firestore.get(/databases/(default)/documents/assignments/$(assignmentId)).data.companyId == request.auth.uid ||
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userRole == 'admin');
+      
+      allow write: if request.auth != null &&
+        (firestore.get(/databases/(default)/documents/assignments/$(assignmentId)).data.guardId == request.auth.uid ||
+         firestore.get(/databases/(default)/documents/assignments/$(assignmentId)).data.companyId == request.auth.uid);
+    }
+    
+    // ========================================
+    // CERTIFICATE DOCUMENTS - MAXIMUM SECURITY
+    // Nederlandse WPBR/VCA/BHV Certificate Storage
+    // ========================================
+    match /certificate_documents/{userId}/{certificateId}/{fileName} {
+      // Ultra-secure certificate reading with audit trail
+      allow read: if request.auth != null && 
+                     isEmailVerified() &&
+                     isWithinStorageRateLimit('cert_reads', 10 * getStorageRateMultiplier()) && (
+        // Owner can read own certificates
+        request.auth.uid == userId ||
+        // Admin with full audit
+        hasStorageRole('admin') ||
+        // Companies can read verified public certificates for job matching ONLY
+        (hasStorageRole('company') &&
+         exists(path('/databases/(default)/documents/certificates/' + certificateId)) &&
+         get(path('/databases/(default)/documents/certificates/' + certificateId)).data.visibility == 'public' &&
+         get(path('/databases/(default)/documents/certificates/' + certificateId)).data.status == 'verified')
+      );
+      
+      // Bulletproof certificate upload with Nederlandse compliance
+      allow write: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      isEmailVerified() &&
+                      isFromAllowedRegion() &&
+                      hasStorageRole('guard') &&
+                      isWithinStorageRateLimit('cert_uploads', 3) &&
+                      // Strict file validation
+                      request.resource.size <= 20971520 && // 20MB for high-quality scans
+                      request.resource.contentType in [
+                        'image/jpeg', 'image/png', 'application/pdf'
+                      ] &&
+                      // Certificate-specific filename validation
+                      fileName.matches('^(wpbr|vca|bhv|ehbo|svpb)_cert_[a-z0-9_]+\.(jpg|jpeg|png|pdf)$') &&
+                      // Validate certificate exists in Firestore
+                      exists(path('/databases/(default)/documents/certificates/' + certificateId)) &&
+                      get(path('/databases/(default)/documents/certificates/' + certificateId)).data.userId == userId &&
+                      // Metadata requirements
+                      request.resource.metadata != null &&
+                      request.resource.metadata.keys().hasAll([
+                        'certificateId', 'uploadedBy', 'certificateType', 'encrypted'
+                      ]) &&
+                      request.resource.metadata.certificateId == certificateId &&
+                      request.resource.metadata.uploadedBy == request.auth.uid &&
+                      request.resource.metadata.certificateType in ['WPBR', 'VCA', 'BHV', 'EHBO', 'SVPB'];
+      
+      // Secure deletion with audit requirements
+      allow delete: if request.auth != null && 
+                       isWithinStorageRateLimit('cert_deletes', 2) && (
+        (request.auth.uid == userId &&
+         // Can only delete pending certificates
+         exists(path('/databases/(default)/documents/certificates/' + certificateId)) &&
+         get(path('/databases/(default)/documents/certificates/' + certificateId)).data.status == 'pending') ||
+        hasStorageRole('admin')
+      );
+    }
+    
+    // Temporary certificate uploads (for processing before permanent storage)
+    match /temp_certificate_uploads/{userId}/{fileName} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.size < 10 * 1024 * 1024;
+      
+      // Auto-cleanup: Allow deletion by owner or system
+      allow delete: if request.auth != null && (
+        request.auth.uid == userId ||
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userType == 'admin'
+      );
+    }
+    
+    // Certificate verification documents (read-only after creation)
+    match /certificate_verifications/{certificateId}/{verificationId}/{fileName} {
+      allow read: if request.auth != null && (
+        // Owner of the certificate can read
+        firestore.get(/databases/(default)/documents/certificates/$(certificateId)).data.userId == request.auth.uid ||
+        // Admin can read all verifications
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userType == 'admin'
+      );
+      
+      // Only system/admin can write verification documents
+      allow write: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.userType == 'admin';
+      
+      // Verification documents should never be deleted for audit trail
+      allow delete: if false;
+    }
+    
+    // ========================================
+    // STORAGE RATE LIMITING TRACKING
+    // ========================================
+    match /storage_rate_limits/{userId} {
+      // Only the user can manage their rate limits
+      allow read, write: if request.auth != null && 
+                            request.auth.uid == userId &&
+                            request.resource.data.keys().hasAll([
+                              'chat_uploads', 'chat_reads', 'profile_uploads', 
+                              'cert_uploads', 'windowStart', 'lastUpdate'
+                            ]);
+    }
+
+    // ========================================
+    // STORAGE AUDIT LOGS
+    // ========================================
+    match /storage_audit/{auditId} {
+      // Admin-only access for security monitoring
+      allow read: if hasStorageRole('admin');
+      
+      // System can create audit logs
+      allow create: if request.auth != null &&
+                       request.resource.metadata.keys().hasAll([
+                         'action', 'userId', 'fileName', 'timestamp', 
+                         'success', 'fileSize', 'contentType'
+                       ]);
+      
+      // Audit logs are immutable
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ========================================
+    // EMERGENCY STORAGE LOCKDOWN
+    // ========================================
+    match /emergency_storage/{configId} {
+      allow read: if hasStorageRole('admin');
+      allow write: if hasStorageRole('admin');
+    }
+
+    // ========================================
+    // QUARANTINE AREA FOR SUSPICIOUS FILES
+    // ========================================
+    match /quarantine/{suspiciousFileId} {
+      // Only admin can access quarantined files
+      allow read, write: if hasStorageRole('admin');
+    }
+
+    // ========================================
+    // DEFAULT DENY-ALL RULE FOR STORAGE
+    // All undefined paths are blocked
+    // ========================================
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

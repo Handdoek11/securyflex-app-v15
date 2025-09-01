@@ -1,0 +1,270 @@
+📁 Complete Flutter Folder Structure Mapping voor SecuryFlex
+Gebaseerd op je bestaande app structure en de 85+ nieuwe pages uit de analyse. Hier is waar elk bestand moet staan:
+🎯 BESTAANDE FEATURES (Behouden)
+lib/
+├── beveiliger_dashboard/ ✅ (al goed)
+├── company_dashboard/ ✅ (al goed) 
+├── marketplace/ ✅ (al goed)
+├── chat/ ✅ (al goed)
+├── core/ ✅ (al goed)
+├── services/ ✅ (al goed)
+└── unified_components/ ✅ (al goed)
+📋 COMPLETE NIEUWE FOLDER STRUCTURE
+🔐 Authentication & Onboarding
+lib/
+├── features/
+│   ├── auth/
+│   │   ├── bloc/
+│   │   │   ├── auth_bloc.dart
+│   │   │   ├── registration_bloc.dart
+│   │   │   └── verification_bloc.dart
+│   │   ├── models/
+│   │   │   ├── user_model.dart
+│   │   │   ├── registration_model.dart
+│   │   │   └── verification_model.dart
+│   │   ├── screens/
+│   │   │   ├── welkomscherm.dart ← New
+│   │   │   ├── rolselectie_screen.dart ← New
+│   │   │   ├── registratie_basis_screen.dart ← New
+│   │   │   ├── beveiliger_verificatie_screen.dart ← New
+│   │   │   ├── bedrijf_verificatie_screen.dart ← New
+│   │   │   ├── document_upload_screen.dart ← New
+│   │   │   ├── verificatie_wachten_screen.dart ← New
+│   │   │   ├── profiel_aanvullen_screen.dart ← New
+│   │   │   ├── betalingsmethode_screen.dart ← New
+│   │   │   ├── introductie_tour_screen.dart ← New
+│   │   │   ├── inloggen_screen.dart ← Mogelijk bestaand
+│   │   │   ├── wachtwoord_vergeten_screen.dart ← New
+│   │   │   ├── wachtwoord_herstellen_screen.dart ← New
+│   │   │   ├── twee_factor_auth_screen.dart ← New
+│   │   │   ├── biometrische_login_screen.dart ← New
+│   │   │   └── account_vergrendeld_screen.dart ← New
+│   │   ├── widgets/
+│   │   │   ├── role_selection_card.dart
+│   │   │   ├── document_upload_widget.dart
+│   │   │   ├── verification_progress_indicator.dart
+│   │   │   └── auth_form_fields.dart
+│   │   └── services/
+│   │       ├── auth_service.dart
+│   │       ├── document_verification_service.dart
+│   │       └── kvk_validation_service.dart
+👮 Guard/Beveiliger Features (Uitbreiding van bestaande)
+├── beveiliger_dashboard/ (BESTAAND - uitbreiden)
+│   ├── screens/
+│   │   ├── dashboard_screen.dart ← Bestaand
+│   │   ├── snelle_acties_screen.dart ← New
+│   │   ├── meldingen_centrum_screen.dart ← New
+│   │   ├── nieuwe_kansen_screen.dart ← New
+│   │   └── prestatie_overzicht_screen.dart ← New
+│
+├── beveiliger_opdrachten/ ← New feature (mogelijk marketplace uitbreiden?)
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── opdrachten_zoeken_screen.dart
+│   │   ├── opdracht_details_screen.dart ← Mogelijk in marketplace/
+│   │   ├── solliciteren_screen.dart
+│   │   ├── mijn_sollicitaties_screen.dart
+│   │   ├── actieve_opdrachten_screen.dart
+│   │   ├── opdracht_geschiedenis_screen.dart
+│   │   └── favoriete_bedrijven_screen.dart
+│   └── widgets/
+│
+├── beveiliger_planning/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── planning_kalender_screen.dart
+│   │   ├── beschikbaarheid_screen.dart
+│   │   ├── inklokken_screen.dart
+│   │   ├── uitklokken_screen.dart
+│   │   ├── tijdregistratie_screen.dart
+│   │   ├── dienst_details_screen.dart
+│   │   ├── verlof_aanvragen_screen.dart
+│   │   └── kalender_sync_screen.dart
+│   └── widgets/
+│
+├── beveiliger_verdiensten/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── verdiensten_overzicht_screen.dart
+│   │   ├── uitbetaling_geschiedenis_screen.dart
+│   │   ├── belasting_documenten_screen.dart
+│   │   ├── bankgegevens_screen.dart
+│   │   ├── factuur_genereren_screen.dart
+│   │   ├── btw_overzicht_screen.dart
+│   │   └── kosten_declareren_screen.dart
+│   └── widgets/
+│
+├── beveiliger_profiel/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── mijn_profiel_screen.dart
+│   │   ├── certificaten_screen.dart
+│   │   ├── vaardigheden_screen.dart
+│   │   ├── beoordelingen_screen.dart
+│   │   ├── portfolio_screen.dart
+│   │   ├── privacy_instellingen_screen.dart
+│   │   └── account_beveiliging_screen.dart
+│   └── widgets/
+🏢 Company/Bedrijf Features (Uitbreiding van bestaande)
+├── company_dashboard/ (BESTAAND - uitbreiden)
+│   ├── screens/
+│   │   ├── dashboard_screen.dart ← Bestaand
+│   │   ├── dekking_status_screen.dart ← New
+│   │   ├── kosten_overzicht_screen.dart ← New
+│   │   ├── team_prestaties_screen.dart ← New
+│   │   ├── snelle_acties_screen.dart ← New
+│   │   └── meldingen_screen.dart ← New
+│
+├── bedrijf_beveiligers/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── beveiligers_zoeken_screen.dart
+│   │   ├── beveiliger_profiel_screen.dart
+│   │   ├── favoriete_beveiligers_screen.dart
+│   │   ├── team_beheer_screen.dart
+│   │   ├── prestatie_tracking_screen.dart
+│   │   ├── beoordelingen_geven_screen.dart
+│   │   └── contract_beheer_screen.dart
+│   └── widgets/
+│
+├── bedrijf_opdrachten/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── opdracht_plaatsen_screen.dart
+│   │   ├── mijn_opdrachten_screen.dart
+│   │   ├── sollicitaties_screen.dart
+│   │   ├── opdracht_bewerken_screen.dart
+│   │   ├── opdracht_archief_screen.dart
+│   │   ├── template_beheer_screen.dart
+│   │   └── urgente_opdrachten_screen.dart
+│   └── widgets/
+│
+├── bedrijf_planning/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── planning_overzicht_screen.dart
+│   │   ├── dienst_plannen_screen.dart
+│   │   ├── team_kalender_screen.dart
+│   │   ├── dekking_analyse_screen.dart
+│   │   ├── automatische_planning_screen.dart
+│   │   ├── planning_conflicten_screen.dart
+│   │   └── noodplanning_screen.dart
+│   └── widgets/
+│
+├── bedrijf_facturering/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── facturering_overzicht_screen.dart
+│   │   ├── facturen_screen.dart
+│   │   ├── kosten_analyse_screen.dart
+│   │   ├── btw_rapportage_screen.dart
+│   │   ├── betalingsmethoden_screen.dart
+│   │   ├── abonnement_beheer_screen.dart
+│   │   └── financiele_rapporten_screen.dart
+│   └── widgets/
+⚙️ Admin Features
+├── admin/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── platform_dashboard_screen.dart
+│   │   ├── gebruiker_verificatie_screen.dart
+│   │   ├── document_review_screen.dart
+│   │   ├── transactie_monitor_screen.dart
+│   │   ├── compliance_rapportage_screen.dart
+│   │   ├── systeem_configuratie_screen.dart
+│   │   └── audit_logs_screen.dart
+│   └── widgets/
+🔄 Shared Features
+├── instellingen/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── instellingen_screen.dart
+│   │   ├── account_instellingen_screen.dart
+│   │   ├── privacy_instellingen_screen.dart
+│   │   ├── meldingen_instellingen_screen.dart
+│   │   ├── taal_regio_screen.dart
+│   │   ├── beveiliging_screen.dart
+│   │   ├── data_export_screen.dart
+│   │   └── account_verwijderen_screen.dart
+│   └── widgets/
+│
+├── hulp/ ← New feature
+│   ├── bloc/
+│   ├── models/
+│   ├── screens/
+│   │   ├── help_centrum_screen.dart
+│   │   ├── veelgestelde_vragen_screen.dart
+│   │   ├── contact_ondersteuning_screen.dart
+│   │   ├── live_chat_screen.dart
+│   │   ├── gebruikershandleiding_screen.dart
+│   │   ├── video_tutorials_screen.dart
+│   │   ├── probleemoplossing_screen.dart
+│   │   └── feedback_geven_screen.dart
+│   └── widgets/
+│
+├── juridisch/ ← New feature
+│   ├── screens/
+│   │   ├── algemene_voorwaarden_screen.dart
+│   │   ├── privacybeleid_screen.dart
+│   │   ├── cookie_beleid_screen.dart
+│   │   ├── gdpr_rechten_screen.dart
+│   │   ├── geschillenregeling_screen.dart
+│   │   ├── platform_regels_screen.dart
+│   │   └── compliance_informatie_screen.dart
+│   └── widgets/
+🔄 BESTAANDE PAGES MAPPING
+Mogelijk al bestaande pages:
+✅ BESTAAND (waarschijnlijk):
+├── beveiliger_dashboard/dashboard_screen.dart → behouden
+├── company_dashboard/dashboard_screen.dart → behouden
+├── marketplace/job_search_screen.dart → kan worden opdrachten_zoeken_screen.dart
+├── marketplace/job_details_screen.dart → kan worden opdracht_details_screen.dart
+├── chat/ → behouden en uitbreiden
+
+⚠️ MOGELIJK BESTAAND (check je app):
+├── auth/login_screen.dart → kan worden inloggen_screen.dart
+├── profile/ → verdelen over beveiliger_profiel/ en bedrijf profiel
+├── settings/ → wordt instellingen/
+└── notifications/ → integreren in meldingen_centrum
+📱 ROUTING STRUCTURE
+lib/
+├── core/
+│   ├── routing/
+│   │   ├── app_router.dart ← Uitbreiden met alle nieuwe routes
+│   │   ├── route_names.dart ← Alle route constants
+│   │   └── deep_link_handler.dart ← Voor /job/{jobId} etc.
+│   └── navigation/
+│       ├── beveiliger_bottom_nav.dart
+│       ├── bedrijf_bottom_nav.dart
+│       └── admin_sidebar_nav.dart
+🎯 IMPLEMENTATIE PRIORITEIT
+Fase 1: Uitbreiden bestaande features
+
+beveiliger_dashboard/ → nieuwe screens toevoegen
+company_dashboard/ → nieuwe screens toevoegen
+marketplace/ → uitbreiden met sollicitatie flow
+auth/ → uitbreiden met alle onboarding screens
+
+Fase 2: Nieuwe core features
+
+beveiliger_planning/ → volledig nieuwe feature
+beveiliger_verdiensten/ → volledig nieuwe feature
+bedrijf_beveiligers/ → volledig nieuwe feature
+bedrijf_planning/ → volledig nieuwe feature
+
+Fase 3: Advanced features
+
+admin/ → volledig nieuwe feature
+bedrijf_facturering/ → volledig nieuwe feature
+instellingen/ → uitgebreide settings
+hulp/ → support systeem

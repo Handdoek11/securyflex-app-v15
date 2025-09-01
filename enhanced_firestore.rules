@@ -1,0 +1,411 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Enhanced helper functions for security
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().userType == role;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    // Enhanced security: Check if user account is locked/suspended
+    function isAccountActive() {
+      return isAuthenticated() && 
+             (!exists(/databases/$(database)/documents/user_security/$(request.auth.uid)) ||
+              get(/databases/$(database)/documents/user_security/$(request.auth.uid)).data.get('accountStatus', 'active') == 'active');
+    }
+
+    // Rate limiting helper - check if user has exceeded rate limits
+    function isWithinRateLimit(operation) {
+      let rateLimitDoc = /databases/$(database)/documents/rate_limits/$(request.auth.uid);
+      return !exists(rateLimitDoc) || 
+             get(rateLimitDoc).data.get(operation + '_lastRequest', timestamp.value(0)) < 
+             request.time - duration.value(30); // 30 second rate limit
+    }
+
+    // Enhanced input validation
+    function isValidString(str, minLength, maxLength) {
+      return str is string && 
+             str.size() >= minLength && 
+             str.size() <= maxLength &&
+             str.matches('^[a-zA-Z0-9\\s\\-_\\.\\,\\(\\)]+$'); // Whitelist pattern
+    }
+
+    function isValidCertificateNumber(certNum) {
+      return certNum is string && 
+             certNum.size() >= 6 && 
+             certNum.size() <= 20 &&
+             certNum.matches('^(WPBR|VCA|BHV|EHBO)-[A-Z0-9]+$');
+    }
+
+    function isValidBSN(bsn) {
+      return bsn is string && 
+             (bsn == '' || 
+              bsn.matches('^ENC:.*') || // Encrypted BSN
+              bsn.matches('^BSN_AES256_V1:.*')); // New encryption format
+    }
+
+    function isValidDocumentMetadata(metadata) {
+      return metadata.keys().hasAll(['encrypted', 'encryptionVersion', 'integrityHash']) &&
+             metadata.encrypted == true &&
+             metadata.encryptionVersion in ['AES256_V1'] &&
+             metadata.integrityHash is string &&
+             metadata.integrityHash.size() == 64; // SHA-256 hash length
+    }
+
+    // Enhanced certificate management with stricter security
+    match /user_certificates/{userId} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                     (isOwner(userId) || hasRole('admin'));
+
+      match /certificates/{certificateId} {
+        // Enhanced read permissions with audit logging
+        allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+          // Owner can read their certificates
+          isOwner(userId) || 
+          // Admin can read all certificates
+          hasRole('admin') || 
+          // Company can read public certificates for job matching (with restrictions)
+          (hasRole('company') && 
+           resource.data.get('visibility', 'private') == 'public' &&
+           resource.data.get('allowJobMatching', false) == true)
+        );
+        
+        // Stricter create permissions with comprehensive validation
+        allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                         isWithinRateLimit('certificate_create') &&
+                         (hasRole('guard') || hasRole('admin')) && 
+                         isOwner(userId) &&
+                         // Enhanced certificate data validation
+                         request.resource.data.keys().hasAll([
+                           'type', 'number', 'holderName', 'holderBsn', 
+                           'issueDate', 'expirationDate', 'status', 
+                           'issuingAuthority', 'competencies', 'isEncrypted', 
+                           'createdAt', 'securityValidated'
+                         ]) &&
+                         isValidCertificateNumber(request.resource.data.number) &&
+                         isValidString(request.resource.data.holderName, 2, 100) &&
+                         isValidBSN(request.resource.data.holderBsn) &&
+                         request.resource.data.issueDate is timestamp &&
+                         request.resource.data.expirationDate is timestamp &&
+                         request.resource.data.expirationDate > request.resource.data.issueDate &&
+                         request.resource.data.status in ['pending', 'verified', 'rejected', 'expired', 'suspended'] &&
+                         isValidString(request.resource.data.issuingAuthority, 5, 200) &&
+                         request.resource.data.competencies is list &&
+                         request.resource.data.competencies.size() <= 20 &&
+                         request.resource.data.isEncrypted is bool &&
+                         request.resource.data.createdAt is timestamp &&
+                         request.resource.data.securityValidated == true;
+        
+        // Enhanced update permissions with change tracking
+        allow update: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                         isWithinRateLimit('certificate_update') &&
+                         (isOwner(userId) || hasRole('admin')) &&
+                         // Prevent changing critical fields
+                         request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'lastVerified', 'documentUrl', 'competencies', 'metadata']) &&
+                         // Ensure security validation remains true
+                         request.resource.data.get('securityValidated', false) == true;
+        
+        // Enhanced delete permissions
+        allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                         isWithinRateLimit('certificate_delete') &&
+                         (isOwner(userId) || hasRole('admin'));
+        
+        // Enhanced document subcollection with encryption requirements
+        match /documents/{documentId} {
+          allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                         (isOwner(userId) || hasRole('admin'));
+          
+          allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                           isWithinRateLimit('document_upload') &&
+                           isOwner(userId) &&
+                           request.resource.data.keys().hasAll([
+                             'fileName', 'fileSize', 'uploadedAt', 'downloadUrl', 
+                             'documentType', 'encrypted', 'encryptionVersion', 
+                             'integrityHash', 'securityValidated'
+                           ]) &&
+                           isValidString(request.resource.data.fileName, 1, 255) &&
+                           request.resource.data.fileSize is number &&
+                           request.resource.data.fileSize > 0 &&
+                           request.resource.data.fileSize <= 10485760 && // 10MB limit
+                           request.resource.data.uploadedAt is timestamp &&
+                           request.resource.data.downloadUrl is string &&
+                           request.resource.data.documentType in ['wpbr', 'vca', 'bhv', 'ehbo', 'identity'] &&
+                           isValidDocumentMetadata(request.resource.data) &&
+                           request.resource.data.securityValidated == true;
+          
+          allow update: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                           (isOwner(userId) || hasRole('admin')) &&
+                           // Only allow status updates
+                           request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'verifiedAt', 'verifiedBy']);
+          
+          allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                           (isOwner(userId) || hasRole('admin'));
+        }
+        
+        // Enhanced verification history with immutable audit trail
+        match /verifications/{verificationId} {
+          allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                         (isOwner(userId) || hasRole('admin'));
+          
+          allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                           isWithinRateLimit('verification_create') &&
+                           request.resource.data.keys().hasAll([
+                             'verifiedAt', 'status', 'verifiedBy', 'verificationMethod', 
+                             'ipAddress', 'userAgent', 'integrityHash'
+                           ]) &&
+                           request.resource.data.verifiedAt is timestamp &&
+                           request.resource.data.status in ['verified', 'invalid', 'expired', 'error', 'pending', 'suspicious'] &&
+                           request.resource.data.verifiedBy == request.auth.uid &&
+                           isValidString(request.resource.data.verificationMethod, 3, 50) &&
+                           request.resource.data.ipAddress is string &&
+                           request.resource.data.userAgent is string &&
+                           request.resource.data.integrityHash is string;
+          
+          // Verification records are immutable for audit integrity
+          allow update: if false;
+          allow delete: if false;
+        }
+      }
+    }
+    
+    // Enhanced security audit logs with comprehensive tracking
+    match /security_audit_logs/{logType} {
+      match /entries/{entryId} {
+        // Only admins can read audit logs
+        allow read: if hasRole('admin');
+        
+        // Users can create audit entries for their own actions
+        allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() &&
+                         request.resource.data.keys().hasAll([
+                           'userId', 'action', 'timestamp', 'result', 'ipAddress', 
+                           'userAgent', 'source', 'version', 'integrityHash'
+                         ]) &&
+                         request.resource.data.userId is string &&
+                         request.resource.data.action is string &&
+                         request.resource.data.timestamp is timestamp &&
+                         request.resource.data.result in ['success', 'error', 'blocked', 'info'] &&
+                         request.resource.data.source in [
+                           'enhanced_document_upload_service', 
+                           'enhanced_wpbr_verification_service',
+                           'certificate_management_service'
+                         ] &&
+                         request.resource.data.version is string &&
+                         request.resource.data.integrityHash is string;
+        
+        // Audit logs are immutable
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+    
+    // Enhanced rate limiting with multiple tiers
+    match /rate_limits/{userId} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                     (isOwner(userId) || hasRole('admin'));
+      
+      allow write: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                      isOwner(userId) &&
+                      request.resource.data.keys().hasAll(['lastUpdated']) &&
+                      request.resource.data.lastUpdated is timestamp;
+      
+      allow delete: if hasRole('admin');
+    }
+
+    // Enhanced user security tracking
+    match /user_security/{userId} {
+      allow read: if isAuthenticated() && isEmailVerified() && 
+                     (isOwner(userId) || hasRole('admin'));
+      
+      allow create: if isAuthenticated() && isEmailVerified() && 
+                       request.resource.data.keys().hasAll([
+                         'accountStatus', 'lastActivity', 'securityEvents', 'riskScore'
+                       ]) &&
+                       request.resource.data.accountStatus in ['active', 'suspended', 'locked', 'pending_verification'] &&
+                       request.resource.data.lastActivity is timestamp &&
+                       request.resource.data.securityEvents is list &&
+                       request.resource.data.riskScore is number &&
+                       request.resource.data.riskScore >= 0 &&
+                       request.resource.data.riskScore <= 100;
+      
+      // Only admins can suspend/lock accounts
+      allow update: if hasRole('admin') || 
+                       (isOwner(userId) && 
+                        request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['lastActivity', 'securityEvents']));
+      
+      allow delete: if hasRole('admin');
+    }
+
+    // Enhanced GDPR compliance with stricter controls
+    match /gdpr_requests/{requestId} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                     (resource.data.userId == request.auth.uid || hasRole('admin'));
+      
+      allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() &&
+                       isWithinRateLimit('gdpr_request') &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'requestType', 'requestedAt', 'status', 
+                         'dataTypes', 'justification', 'ipAddress'
+                       ]) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.requestType in ['delete', 'export', 'modify', 'portability'] &&
+                       request.resource.data.requestedAt is timestamp &&
+                       request.resource.data.status == 'pending' &&
+                       request.resource.data.dataTypes is list &&
+                       request.resource.data.dataTypes.size() > 0 &&
+                       isValidString(request.resource.data.justification, 10, 1000) &&
+                       request.resource.data.ipAddress is string;
+      
+      // Only admins can process GDPR requests
+      allow update: if hasRole('admin') &&
+                       request.resource.data.status in [
+                         'pending', 'processing', 'completed', 'rejected', 'requires_verification'
+                       ] &&
+                       request.resource.data.keys().hasAll(['processedAt', 'processedBy']) &&
+                       request.resource.data.processedAt is timestamp &&
+                       request.resource.data.processedBy == request.auth.uid;
+      
+      // GDPR requests cannot be deleted (legal requirement)
+      allow delete: if false;
+    }
+
+    // Enhanced job requirements with certificate validation
+    match /job_requirements/{jobId} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        hasRole('guard') || 
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                       isWithinRateLimit('job_requirement_create') &&
+                       (hasRole('company') || hasRole('admin')) &&
+                       request.resource.data.keys().hasAll([
+                         'companyId', 'requiredCertificates', 'jobTitle', 
+                         'createdAt', 'securityLevel', 'validatedAt'
+                       ]) &&
+                       (hasRole('admin') || request.resource.data.companyId == request.auth.uid) &&
+                       request.resource.data.requiredCertificates is list &&
+                       request.resource.data.requiredCertificates.size() > 0 &&
+                       request.resource.data.requiredCertificates.size() <= 10 &&
+                       isValidString(request.resource.data.jobTitle, 5, 200) &&
+                       request.resource.data.createdAt is timestamp &&
+                       request.resource.data.securityLevel in ['low', 'medium', 'high', 'critical'] &&
+                       request.resource.data.validatedAt is timestamp;
+      
+      allow update: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                       isWithinRateLimit('job_requirement_update') &&
+                       ((hasRole('company') && resource.data.companyId == request.auth.uid) || 
+                        hasRole('admin'));
+      
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive() && 
+                       ((hasRole('company') && resource.data.companyId == request.auth.uid) || 
+                        hasRole('admin'));
+    }
+
+    // Enhanced malware scan results (read-only audit trail)
+    match /malware_scan_results/{scanId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() &&
+                       request.resource.data.keys().hasAll([
+                         'fileHash', 'scanResult', 'threatType', 'confidence', 
+                         'scannerVersion', 'scannedAt', 'userId', 'fileName'
+                       ]) &&
+                       request.resource.data.fileHash is string &&
+                       request.resource.data.fileHash.size() == 64 && // SHA-256
+                       request.resource.data.scanResult in ['clean', 'infected', 'suspicious', 'error'] &&
+                       request.resource.data.confidence is number &&
+                       request.resource.data.confidence >= 0.0 &&
+                       request.resource.data.confidence <= 1.0 &&
+                       request.resource.data.scannerVersion is string &&
+                       request.resource.data.scannedAt is timestamp &&
+                       request.resource.data.userId is string &&
+                       request.resource.data.fileName is string;
+      
+      // Malware scan results are immutable
+      allow update: if false;
+      allow delete: if hasRole('admin'); // Only for cleanup of old records
+    }
+
+    // Certificate validation cache with TTL
+    match /certificate_cache/{cacheKey} {
+      allow read: if isAuthenticated() && isEmailVerified() && isAccountActive() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      ) && resource.data.expiresAt > request.time;
+      
+      allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'certificateNumber', 'verificationResult', 
+                         'cachedAt', 'expiresAt', 'integrityHash'
+                       ]) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       isValidCertificateNumber(request.resource.data.certificateNumber) &&
+                       request.resource.data.cachedAt is timestamp &&
+                       request.resource.data.expiresAt is timestamp &&
+                       request.resource.data.expiresAt > request.time &&
+                       request.resource.data.integrityHash is string;
+      
+      // Cache entries expire automatically
+      allow update: if false;
+      allow delete: if isAuthenticated() && isEmailVerified() && isAccountActive();
+    }
+
+    // Enhanced error logging with structured data
+    match /error_logs/{errorId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if isAuthenticated() && isEmailVerified() && isAccountActive() &&
+                       isWithinRateLimit('error_log') &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'timestamp', 'errorType', 'errorMessage', 
+                         'stackTrace', 'context', 'severity', 'resolved'
+                       ]) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.timestamp is timestamp &&
+                       request.resource.data.errorType in [
+                         'validation_error', 'security_error', 'network_error', 
+                         'authentication_error', 'authorization_error', 'system_error'
+                       ] &&
+                       request.resource.data.errorMessage is string &&
+                       request.resource.data.stackTrace is string &&
+                       request.resource.data.context is string &&
+                       request.resource.data.severity in ['low', 'medium', 'high', 'critical'] &&
+                       request.resource.data.resolved == false;
+      
+      // Only admins can mark errors as resolved
+      allow update: if hasRole('admin') &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['resolved', 'resolvedAt', 'resolvedBy']) &&
+                       request.resource.data.resolved == true &&
+                       request.resource.data.resolvedAt is timestamp &&
+                       request.resource.data.resolvedBy == request.auth.uid;
+      
+      // Admins can clean up old resolved errors
+      allow delete: if hasRole('admin') && resource.data.resolved == true;
+    }
+
+    // All other collections explicitly denied
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
