@@ -6,7 +6,7 @@ importScripts('https://www.gstatic.com/firebasejs/9.15.0/firebase-messaging-comp
 
 // Firebase configuration - SecuryFlex Development
 const firebaseConfig = {
-  apiKey: "AIzaSyCBOvB4b_3RqeDREBbP3RIrf4Xt_6q2lCM",
+  apiKey: "YOUR_FIREBASE_API_KEY_HERE",
   authDomain: "securyflex-dev.firebaseapp.com",
   projectId: "securyflex-dev",
   storageBucket: "securyflex-dev.firebasestorage.app",

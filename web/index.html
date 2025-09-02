@@ -33,9 +33,60 @@
   <link rel="manifest" href="manifest.json">
   
   <!-- Google Maps JavaScript API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfnz-frkl7I7IHw_KmAOswaDYzOKQCzk0&libraries=geometry,places"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&libraries=geometry,places"></script>
+  
+  <!-- Google Identity Services for Web Sign-In -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <!-- Disable Google Sign-In debug logging (optional) -->
+  <script>
+    // Suppress GSI_LOGGER messages in production
+    if (!window.location.hostname.includes('localhost')) {
+      window.GSI_LOGGER = { log: function() {} };
+    }
+  </script>
+  
+  <style>
+    /* Prevent pointer event issues during loading */
+    flutter-view, flt-scene-host {
+      pointer-events: auto !important;
+    }
+    
+    /* Ensure canvas elements handle pointer events correctly */
+    canvas {
+      touch-action: none;
+      pointer-events: auto;
+    }
+  </style>
 </head>
 <body>
+  <!-- Loading indicator for better UX -->
+  <div id="loading" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+  </div>
+  
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #loading {
+      transition: opacity 0.3s ease;
+    }
+    
+    .flutter-loaded #loading {
+      display: none;
+    }
+  </style>
+  
   <script src="flutter_bootstrap.js" async></script>
+  
+  <script>
+    // Hide loading indicator when Flutter is ready
+    window.addEventListener('flutter-first-frame', function() {
+      document.body.classList.add('flutter-loaded');
+    });
+  </script>
 </body>
 </html>
