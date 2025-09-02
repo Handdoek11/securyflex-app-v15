@@ -31,7 +31,7 @@ service firebase.storage {
         (contentType == 'image/webp' && size <= 5242880) || // 5MB
         // Documents
         (contentType == 'application/pdf' && size <= 20971520) || // 20MB
-        (contentType.matches('application/(msword|vnd\.openxmlformats.*)') && size <= 10485760) ||
+        (contentType.matches('application/(msword|vnd\\.openxmlformats.*)') && size <= 10485760) ||
         (contentType == 'text/plain' && size <= 1048576) // 1MB
       );
     }
@@ -86,7 +86,7 @@ service firebase.storage {
                       // Filename security
                       fileName.size() <= 100 &&
                       fileName.matches('^[a-zA-Z0-9._-]+$') &&
-                      !fileName.matches('\.(exe|bat|cmd|scr|pif|com|vbs|js|jar|app)$') &&
+                      !fileName.matches('\\.(exe|bat|cmd|scr|pif|com|vbs|js|jar|app)$') &&
                       // Metadata validation
                       request.resource.metadata != null &&
                       request.resource.metadata.keys().hasAll(['uploadedBy', 'conversationId']) &&
@@ -118,7 +118,7 @@ service firebase.storage {
                       request.resource.size <= 2097152 && // 2MB limit
                       request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp'] &&
                       // Filename security
-                      fileName.matches('^(profile|avatar)\.(jpg|jpeg|png|webp)$') &&
+                      fileName.matches('^(profile|avatar)\\.(jpg|jpeg|png|webp)$') &&
                       // Prevent profile impersonation
                       userId == request.auth.uid;
                       
@@ -184,7 +184,7 @@ service firebase.storage {
                         'image/jpeg', 'image/png', 'application/pdf'
                       ] &&
                       // Certificate-specific filename validation
-                      fileName.matches('^(wpbr|vca|bhv|ehbo|svpb)_cert_[a-z0-9_]+\.(jpg|jpeg|png|pdf)$') &&
+                      fileName.matches('^(wpbr|vca|bhv|ehbo|svpb)_cert_[a-z0-9_]+\\.(jpg|jpeg|png|pdf)$') &&
                       // Validate certificate exists in Firestore
                       exists(path('/databases/(default)/documents/certificates/' + certificateId)) &&
                       get(path('/databases/(default)/documents/certificates/' + certificateId)).data.userId == userId &&

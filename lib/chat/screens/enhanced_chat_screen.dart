@@ -17,6 +17,7 @@ import 'chat_message_list.dart';
 import 'floating_elements.dart';
 import 'scroll_physics.dart';
 import 'loading_states.dart';
+import 'package:go_router/go_router.dart';
 
 /// Enhanced chat screen with modern visual hierarchy and premium conversation experience
 /// 
@@ -320,7 +321,7 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
         messageType: message.messageType,
       );
     });
-    Navigator.pop(context);
+    context.pop();
   }
 
   void _cancelReply() {
@@ -405,7 +406,7 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
               title: ChatNL.copy,
               onTap: () {
                 // Copy message content
-                Navigator.pop(context);
+                context.pop();
               },
               colorScheme: colorScheme,
             ),
@@ -414,7 +415,7 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
               title: 'Doorsturen',
               onTap: () {
                 // Forward message
-                Navigator.pop(context);
+                context.pop();
               },
               colorScheme: colorScheme,
             ),
@@ -423,7 +424,7 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
                 icon: Icons.delete,
                 title: ChatNL.delete,
                 onTap: () {
-                  Navigator.pop(context);
+                  context.pop();
                   _showDeleteConfirmation(message);
                 },
                 colorScheme: colorScheme,
@@ -478,12 +479,12 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Annuleren'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               // Delete message
             },
             style: TextButton.styleFrom(
@@ -518,7 +519,7 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
                   title: widget.conversation.title,
                   showNotifications: false,
                   leading: HeaderElements.backButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     color: DesignTokens.colorWhite,
                   ),
                   actions: _buildHeaderActions(),
@@ -527,7 +528,7 @@ class _EnhancedChatScreenState extends State<EnhancedChatScreen>
                   title: widget.conversation.title,
                   userRole: widget.userRole,
                   leading: HeaderElements.backButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     userRole: widget.userRole,
                   ),
                   actions: _buildHeaderActions(),

@@ -6,6 +6,7 @@ import '../../unified_card_system.dart';
 import '../../unified_buttons.dart';
 import '../bloc/workflow_orchestration_bloc.dart';
 import '../models/job_workflow_models.dart';
+import 'package:go_router/go_router.dart';
 
 /// WorkflowStatusWidget displays real-time workflow status in dashboards
 /// Provides visual feedback and actionable buttons for workflow transitions
@@ -575,7 +576,7 @@ class WorkflowStatusWidget extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: Text('Annuleren'),
           ),
           FilledButton(
@@ -585,7 +586,7 @@ class WorkflowStatusWidget extends StatelessWidget {
                 companyId: userId,
                 acceptanceMessage: 'Welkom bij ons team!',
               ));
-              Navigator.of(context).pop();
+              context.pop();
             },
             child: Text('Accepteren'),
           ),
@@ -614,7 +615,7 @@ class WorkflowStatusWidget extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: Text('Annuleren'),
           ),
           FilledButton(
@@ -625,7 +626,7 @@ class WorkflowStatusWidget extends StatelessWidget {
                 actualEndTime: DateTime.now(),
                 totalHoursWorked: hoursWorked,
               ));
-              Navigator.of(context).pop();
+              context.pop();
             },
             child: Text('Voltooien'),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
 import '../widgets/enhanced_message_bubble.dart';
@@ -430,7 +431,7 @@ class _EnhancedMessageBubbleDemoState extends State<EnhancedMessageBubbleDemo> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('OK'),
           ),
         ],
@@ -483,7 +484,7 @@ class _EnhancedMessageBubbleDemoState extends State<EnhancedMessageBubbleDemo> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('OK'),
           ),
         ],

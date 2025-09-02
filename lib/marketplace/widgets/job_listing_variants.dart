@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
 import 'package:securyflex_app/unified_theme_system.dart';
+import 'package:securyflex_app/unified_components/premium_glass_system.dart';
 import '../model/security_job_data.dart';
 import '../bloc/job_bloc.dart';
 import '../bloc/job_state.dart';
@@ -36,19 +37,16 @@ class CompactJobListItem extends StatelessWidget {
           horizontal: DesignTokens.spacingM,
           vertical: DesignTokens.spacingXS / 2,
         ),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+        child: PremiumGlassContainer(
+          intensity: GlassIntensity.standard,
+          elevation: GlassElevation.floating,
+          tintColor: SecuryFlexTheme.getColorScheme(userRole).surfaceContainerHighest,
           borderRadius: BorderRadius.circular(DesignTokens.radiusS),
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.1),
-            width: 0.5,
-          ),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusS),
-          child: InkWell(
-            onTap: onTap,
+          padding: EdgeInsets.zero,
+          enableTrustBorder: true,
+          onTap: onTap,
+          child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusS),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -187,30 +185,18 @@ class DenseJobListItem extends StatelessWidget {
           horizontal: DesignTokens.spacingM,
           vertical: DesignTokens.spacingXS,
         ),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+        child: PremiumGlassContainer(
+          intensity: GlassIntensity.standard,
+          elevation: GlassElevation.floating,
+          tintColor: SecuryFlexTheme.getColorScheme(userRole).surfaceContainerHighest,
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.15),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.05),
-              offset: const Offset(0, 1),
-              blurRadius: 3,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          child: InkWell(
-            onTap: onTap,
+          padding: const EdgeInsets.all(DesignTokens.spacingM),
+          enableTrustBorder: true,
+          onTap: onTap,
+          child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-            child: Padding(
-              padding: const EdgeInsets.all(DesignTokens.spacingM),
-              child: Column(
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -385,7 +371,6 @@ class DenseJobListItem extends StatelessWidget {
                     ],
                   ),
                 ],
-              ),
             ),
           ),
         ),

@@ -4,6 +4,7 @@ import '../../unified_design_tokens.dart';
 import '../../unified_buttons.dart';
 import '../../unified_card_system.dart';
 import '../../unified_theme_system.dart';
+import '../../unified_components/premium_glass_system.dart';
 import '../../beveiliger_dashboard/widgets/mini_map_preview.dart';
 import '../model/security_job_data.dart';
 import '../services/certificate_matching_service.dart';
@@ -50,10 +51,14 @@ class JobCard extends StatelessWidget {
       builder: (context, state) {
         final hasApplied = state is JobLoaded && state.hasAppliedToJob(job.jobId);
         
-        return UnifiedCard.standard(
-          isClickable: onTap != null,
+        return PremiumGlassContainer(
+          intensity: GlassIntensity.standard,
+          elevation: GlassElevation.floating,
+          tintColor: SecuryFlexTheme.getColorScheme(userRole).surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+          padding: EdgeInsets.all(DesignTokens.spacingM),
+          enableTrustBorder: true,
           onTap: onTap,
-          userRole: userRole,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

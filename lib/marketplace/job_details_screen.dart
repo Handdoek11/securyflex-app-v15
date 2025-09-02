@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:ui' as ui;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -321,7 +322,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen>
         child: Container(
           padding: EdgeInsets.all(DesignTokens.spacingS + DesignTokens.spacingXS), // 12px
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusS),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.2),
@@ -447,7 +448,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen>
       titleAlignment: TextAlign.center, // Modal-style detail screen
       userRole: UserRole.guard,
       leading: HeaderElements.backButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => context.pop(),
         userRole: UserRole.guard,
       ),
       actions: [_buildFavoriteButton()],

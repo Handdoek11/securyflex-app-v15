@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
 import 'package:securyflex_app/unified_theme_system.dart';
 import 'package:securyflex_app/unified_components/unified_dashboard_card.dart';
@@ -137,20 +138,29 @@ class _PendingReviewsWidgetState extends State<PendingReviewsWidget>
       child: InkWell(
         onTap: () async {
           // Navigate to review submission screen
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SubmitReviewScreen(
-                workflowId: review['workflowId'],
-                jobId: review['jobId'],
-                revieweeId: review['companyId'],
-                revieweeName: 'Bedrijf', // In production, fetch actual company name
-                reviewerType: ReviewerType.guard,
-                userRole: UserRole.guard,
-                shiftDate: review['completedAt'],
-              ),
-            ),
-          );
+          final result = await context.push('/review/submit', extra: {
+            'workflowId': review['workflowId'],
+            'jobId': review['jobId'],
+            'revieweeId': review['companyId'],
+            'revieweeName': 'Bedrijf',
+            'reviewerType': 'guard',
+            'userRole': 'guard',
+            'shiftDate': review['completedAt'],
+          });
+          // Original: Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => SubmitReviewScreen(
+          //       workflowId: review['workflowId'],
+          //       jobId: review['jobId'],
+          //       revieweeId: review['companyId'],
+          //       revieweeName: 'Bedrijf', // In production, fetch actual company name
+          //       reviewerType: ReviewerType.guard,
+          //       userRole: UserRole.guard,
+          //       shiftDate: review['completedAt'],
+          //     ),
+          //   ),
+          // );
           
           if (result == true && mounted) {
             // Reload pending reviews

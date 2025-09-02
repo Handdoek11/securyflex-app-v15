@@ -16,6 +16,7 @@ import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 import '../localization/chat_nl.dart';
 import '../../auth/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 /// WhatsApp-quality individual chat screen with real-time messaging
 /// Follows SecuryFlex unified design system patterns
@@ -171,7 +172,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         messageType: message.messageType,
       );
     });
-    Navigator.pop(context); // Close bottom sheet
+    context.pop(); // Close bottom sheet
   }
 
   void _cancelReply() {
@@ -228,7 +229,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
               onTap: () {
                 // Copy message content to clipboard
-                Navigator.pop(context);
+                context.pop();
               },
             ),
             if (message.senderId == AuthService.currentUserType)
@@ -243,7 +244,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
                 onTap: () {
                   // Delete message
-                  Navigator.pop(context);
+                  context.pop();
                 },
               ),
 
@@ -484,7 +485,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   title: widget.conversation.title,
                   showNotifications: false, // No notifications in individual chat
                   leading: HeaderElements.backButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     color: DesignTokens.colorWhite,
                   ),
                   actions: [
@@ -530,7 +531,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   title: widget.conversation.title,
                   userRole: widget.userRole,
                   leading: HeaderElements.backButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     userRole: widget.userRole,
                   ),
                   actions: [

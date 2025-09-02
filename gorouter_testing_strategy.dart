@@ -39,7 +39,8 @@ void authenticationFlowTests() {
       
       // Verify dashboard is shown
       expect(find.text('Dashboard'), findsOneWidget);
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location, 
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(), 
              equals('/beveiliger/dashboard'));
     });
     
@@ -95,7 +96,8 @@ void dashboardNavigationTests() {
       await tester.tap(find.text('Bekijk uitbetalingen'));
       await tester.pumpAndSettle();
       
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location,
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
              equals('/beveiliger/payments'));
     });
   });
@@ -111,7 +113,8 @@ void profileManagementTests() {
       await tester.tap(find.text('Certificaten beheren'));
       await tester.pumpAndSettle();
       
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location,
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
              equals('/beveiliger/certificates/add'));
     });
     
@@ -122,7 +125,8 @@ void profileManagementTests() {
       await tester.tap(find.byKey(Key('edit_certificate_123')));
       await tester.pumpAndSettle();
       
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location,
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
              equals('/beveiliger/certificates/123/edit'));
     });
   });
@@ -138,7 +142,8 @@ void chatNavigationTests() {
       await tester.tap(find.byKey(Key('conversation_456')));
       await tester.pumpAndSettle();
       
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location,
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
              equals('/beveiliger/chat/456'));
     });
     
@@ -149,7 +154,8 @@ void chatNavigationTests() {
       await tester.tap(find.byKey(Key('file_attachment_789')));
       await tester.pumpAndSettle();
       
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location,
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
              equals('/chat/file-preview/789'));
     });
   });
@@ -166,7 +172,8 @@ void modalDialogTests() {
       await tester.pumpAndSettle();
       
       // Should navigate back to notifications
-      expect(GoRouter.of(tester.element(find.byType(MaterialApp))).location,
+      final router = GoRouter.of(tester.element(find.byType(MaterialApp)));
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
              equals('/notifications'));
     });
     

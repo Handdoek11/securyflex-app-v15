@@ -8,6 +8,7 @@ import 'package:securyflex_app/company_dashboard/models/job_posting_data.dart';
 import 'package:securyflex_app/company_dashboard/services/job_posting_service.dart';
 import 'package:securyflex_app/company_dashboard/localization/company_nl.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/responsive/responsive_provider.dart';
 import '../../core/responsive/responsive_extensions.dart';
@@ -590,19 +591,17 @@ class EnhancedJobManagementWidget extends StatelessWidget {
 
   /// Navigate to job creation
   void _navigateToJobCreation(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => JobPostingFormScreen(),
-      ),
-    );
+    context.push('/company/jobs/create');
+    // Original: context.push('/route-placeholder') => JobPostingFormScreen(),
+    //   ),
+    // );
   }
 
   /// Navigate to job edit
   void _navigateToJobEdit(BuildContext context, JobPostingData job) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => JobPostingFormScreen(existingJob: job),
-      ),
-    );
+    context.push('/company/jobs/${job.id}/edit');
+    // Original: context.push('/route-placeholder') => JobPostingFormScreen(existingJob: job),
+    //   ),
+    // );
   }
 }

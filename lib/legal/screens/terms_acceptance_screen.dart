@@ -8,6 +8,7 @@ import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
 import '../terms_and_conditions.dart';
 import '../privacy_policy.dart';
+import '../../auth/auth_service.dart';
 
 class TermsAcceptanceScreen extends StatefulWidget {
   final UserRole userRole;
@@ -73,16 +74,34 @@ class _TermsAcceptanceScreenState extends State<TermsAcceptanceScreen>
       return;
     }
     
+    // Get userId from widget or AuthService as fallback
+    String userId = widget.userId.isNotEmpty ? widget.userId : AuthService.currentUserId;
+    
+    print('DEBUG: TermsAcceptance - widget.userId: "${widget.userId}"');
+    print('DEBUG: TermsAcceptance - AuthService.currentUserId: "${AuthService.currentUserId}"');
+    print('DEBUG: TermsAcceptance - final userId: "$userId"');
+    
+    // Check if userId is valid
+    if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gebruikers-ID niet gevonden. Probeer opnieuw in te loggen.'),
+          backgroundColor: DesignTokens.colorError,
+        ),
+      );
+      return;
+    }
+    
     setState(() {
       _isLoading = true;
     });
     
     try {
-      // Save acceptance to Firestore
+      // Save acceptance to Firestore with all required fields
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(widget.userId)
-          .update({
+          .doc(userId)
+          .set({
         'termsAccepted': true,
         'termsVersion': TermsAndConditions.version,
         'termsAcceptedAt': FieldValue.serverTimestamp(),
@@ -91,13 +110,17 @@ class _TermsAcceptanceScreenState extends State<TermsAcceptanceScreen>
         'privacyAcceptedAt': FieldValue.serverTimestamp(),
         'cookieConsent': _acceptCookies,
         'cookieConsentAt': _acceptCookies ? FieldValue.serverTimestamp() : null,
-      });
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       
       // Save locally
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('terms_accepted', true);
       await prefs.setString('terms_version', TermsAndConditions.version);
       await prefs.setBool('cookie_consent', _acceptCookies);
+      
+      // Update AuthService cache immediately for route guards
+      AuthService.updateTermsAcceptanceCache(userId, true);
       
       // Navigate to main app
       if (mounted) {

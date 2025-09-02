@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
+import '../services/maps_location_service.dart';
 
 /// Mini map preview widget for showing location information
 /// Used in guard welcome widget to display shift locations

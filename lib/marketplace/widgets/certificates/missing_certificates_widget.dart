@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../unified_design_tokens.dart';
+import '../../../unified_components/premium_glass_system.dart';
 import '../../../models/certificates/certificate_models.dart';
 import '../../../models/certificates/job_requirements_models.dart';
 
@@ -40,7 +41,7 @@ class MissingCertificatesWidget extends StatelessWidget {
         vertical: DesignTokens.spacingS,
       ),
       decoration: BoxDecoration(
-        color: DesignTokens.colorWhite,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(DesignTokens.radiusL),
         border: Border.all(
           color: DesignTokens.colorGray200,

@@ -6,6 +6,7 @@ import '../services/subscription_service.dart';
 import '../services/feature_access_service.dart';
 import '../../unified_design_tokens.dart';
 import '../../auth/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 /// Comprehensive subscription management screen
 /// Allows users to view current subscription, upgrade/downgrade, manage payment methods,
@@ -690,7 +691,7 @@ class _SubscriptionManagementScreenState extends State<SubscriptionManagementScr
   }
 
   void _navigateToUpgrade() {
-    Navigator.pushNamed(context, '/subscription-upgrade');
+    context.push('/subscription-upgrade');
   }
 
   void _showPaymentMethods() {
@@ -715,7 +716,7 @@ class _SubscriptionManagementScreenState extends State<SubscriptionManagementScr
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Sluiten'),
           ),
         ],
@@ -752,12 +753,12 @@ class _SubscriptionManagementScreenState extends State<SubscriptionManagementScr
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Annuleren'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Abonnement opzegging binnenkort beschikbaar'),

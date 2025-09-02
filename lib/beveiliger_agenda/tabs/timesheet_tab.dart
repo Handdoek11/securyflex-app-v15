@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:securyflex_app/unified_theme_system.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
 import 'package:securyflex_app/unified_buttons.dart';
+import '../../unified_components/premium_glass_system.dart';
 // BeveiligerDashboardTheme import removed - using unified design tokens
 
 import '../utils/date_utils.dart';
@@ -182,7 +183,7 @@ class _TimesheetTabState extends State<TimesheetTab>
                   decoration: BoxDecoration(
                     color: _isOnShift 
                         ? SecuryFlexTheme.getColorScheme(UserRole.guard).primary.withValues(alpha: 0.18)
-                        : Colors.white.withValues(alpha: 0.18),
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: _isOnShift
@@ -311,7 +312,7 @@ class _TimesheetTabState extends State<TimesheetTab>
           filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(DesignTokens.radiusM),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.25),
@@ -454,7 +455,7 @@ class _TimesheetTabState extends State<TimesheetTab>
         child: Container(
           padding: EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.25),
@@ -523,7 +524,7 @@ class _TimesheetTabState extends State<TimesheetTab>
                 filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),
@@ -656,7 +657,7 @@ class _TimesheetTabState extends State<TimesheetTab>
                 filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),

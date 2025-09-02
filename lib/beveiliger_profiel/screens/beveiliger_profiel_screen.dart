@@ -609,7 +609,7 @@ class _BeveiligerProfielScreenState extends State<BeveiligerProfielScreen>
             child: Container(
               padding: EdgeInsets.all(DesignTokens.spacingM),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.25),
@@ -767,7 +767,7 @@ class _BeveiligerProfielScreenState extends State<BeveiligerProfielScreen>
             child: Container(
               padding: EdgeInsets.all(DesignTokens.spacingM),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.25),
@@ -933,7 +933,7 @@ class _BeveiligerProfielScreenState extends State<BeveiligerProfielScreen>
             child: Container(
               padding: EdgeInsets.all(DesignTokens.spacingM),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.25),
@@ -1091,16 +1091,17 @@ class _BeveiligerProfielScreenState extends State<BeveiligerProfielScreen>
       return;
     }
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => BlocProvider(
-          create: (context) => ProfielEditBloc(),
-          child: ProfielEditScreen(
-            initialProfileData: currentProfile,
-          ),
-        ),
-      ),
-    );
+    final result = await context.push('/beveiliger/certificates/add');
+    // Original: Navigator.of(context).push<bool>(
+    //   MaterialPageRoute(
+    //     builder: (context) => BlocProvider(
+    //       create: (context) => ProfielEditBloc(),
+    //       child: ProfielEditScreen(
+    //         initialProfileData: currentProfile,
+    //       ),
+    //     ),
+    //   ),
+    // );
 
     // Refresh profile na succesvol bewerken
     if (result == true && mounted) {
@@ -1145,25 +1146,23 @@ class _BeveiligerProfielScreenState extends State<BeveiligerProfielScreen>
 
   /// Navigate to notification preferences screen
   void _navigateToNotificationPreferences() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => NotificationPreferencesScreen(
-          animationController: widget.animationController,
-        ),
-      ),
-    );
+    context.push('/notifications/preferences');
+    // Original: context.push('/route-placeholder') => NotificationPreferencesScreen(
+    //       animationController: widget.animationController,
+    //     ),
+    //   ),
+    // );
   }
 
   /// Navigate to subscription management screen
   void _navigateToSubscriptionManagement() {
     final userId = AuthService.currentUserId;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SubscriptionManagementScreen(
-          userId: userId.isNotEmpty ? userId : null,
-        ),
-      ),
-    );
+    context.push('/subscription-management');
+    // Original: context.push('/route-placeholder') => SubscriptionManagementScreen(
+    //       userId: userId.isNotEmpty ? userId : null,
+    //     ),
+    //   ),
+    // );
   }
 
   /// Show coming soon dialog for features not yet implemented

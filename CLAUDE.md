@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SecuryFlex is a Flutter-based security job marketplace app connecting security guards (beveiligers) with security companies in the Netherlands. The app uses Firebase for backend services and follows Dutch regulations and compliance requirements.
 
+**Current Status**: GoRouter 2.0 migration completed (100%). All Navigator 1.0 patterns have been converted to GoRouter 2.0 with StatefulShellRoute for main navigation, proper parameter passing, and custom transitions.
+
 ## Development Commands
 
 ### Essential Commands
@@ -77,7 +79,7 @@ Before any commit, ensure:
 The app supports two primary user types with separate dashboards:
 
 1. **Security Guards (Beveiligers)** - `/lib/beveiliger_*`
-   - Dashboard: `beveiliger_dashboard/modern_beveiliger_dashboard.dart`
+   - Dashboard: `beveiliger_dashboard/modern_beveiliger_dashboard_v2.dart`
    - Main navigation hub: `beveiliger_dashboard_home.dart`
    - Features: shift management, earnings tracking, certificate management, job applications
 
@@ -86,11 +88,12 @@ The app supports two primary user types with separate dashboards:
    - Main navigation hub: `company_dashboard_home.dart`
    - Features: job posting, team management, analytics, application review
 
-### State Management
-Uses Flutter BLoC pattern throughout:
-- Each feature has its own BLoC in `*/bloc/` directories
-- Repository pattern for data access in `*/repository/` directories
-- Services layer for business logic in `*/services/` directories
+### State Management & Navigation
+- **Navigation**: Pure GoRouter 2.0 implementation with StatefulShellRoute for persistent navigation state
+- **State Management**: Flutter BLoC pattern throughout with `*/bloc/` directories
+- **Repository Pattern**: Data access abstraction in `*/repository/` directories  
+- **Services Layer**: Business logic encapsulation in `*/services/` directories
+- **Route Configuration**: Centralized in `lib/routing/app_router.dart` with role-based routing
 
 ### Core Systems Architecture
 
@@ -256,3 +259,9 @@ Uses Flutter BLoC pattern throughout:
 - `billing/services/payment_integration_service.dart`: Dutch payment compliance
 - `schedule/services/location_crypto_service.dart`: Encrypted location tracking
 - `chat/services/notification_service.dart`: Multi-platform notification delivery
+
+### Navigation & Routing
+- `routing/app_router.dart`: Main GoRouter 2.0 configuration with StatefulShellRoute
+- `modern_dashboard_routes.dart`: Dashboard routing with CustomTransitionPage patterns
+- `routing/app_routes.dart`: Route constants and path definitions
+- `routing/route_guards.dart`: Authentication and authorization guards

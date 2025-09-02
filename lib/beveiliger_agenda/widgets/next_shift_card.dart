@@ -381,7 +381,7 @@ class NextShiftCard extends StatelessWidget {
         ),
         Container(
           decoration: BoxDecoration(
-            color: DesignTokens.colorWhite,
+            color: Colors.transparent,
             shape: BoxShape.circle,
             boxShadow: <BoxShadow>[
               BoxShadow(

@@ -5,26 +5,33 @@ import 'package:securyflex_app/unified_components/premium_glass_system.dart';
 import '../../core/shared_animation_controller.dart';
 
 import '../models/enhanced_dashboard_data.dart';
+import '../models/api_models.dart';
+import '../services/dashboard_api_service.dart';
+import '../../auth/auth_service.dart';
 
-/// Earnings Card Widget with real-time Dutch euro formatting
+/// Earnings Card Widget with real-time Dutch euro formatting and API integration
 /// 
 /// Features:
-/// - Real-time earnings tracking during active shifts
+/// - Real-time earnings tracking during active shifts via API
+/// - WebSocket integration for live updates
 /// - Dutch euro formatting (€1.234,56)
 /// - CAO arbeidsrecht compliance indicators
 /// - Overtime calculations (150% after 40h, 200% after 48h)
 /// - Vakantiegeld (8% holiday allowance) display
 /// - BTW calculations for freelance workers
 /// - Visual indicators for real-time updates
+/// - Offline-first with Firestore fallback
 /// - Responsive design for different screen sizes
 class EarningsCardWidget extends StatefulWidget {
-  final EnhancedEarningsData earnings;
+  final EnhancedEarningsData? earnings; // Made nullable for API integration
   final bool isRealTime;
+  final bool useApi; // New parameter for API integration
 
   const EarningsCardWidget({
     super.key,
-    required this.earnings,
+    this.earnings,
     this.isRealTime = false,
+    this.useApi = true, // Default to using API
   });
 
   @override
@@ -39,6 +46,11 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
   late Animation<double> _countUpAnimation;
 
   double _displayedAmount = 0.0;
+  
+  // API integration
+  EarningsApiModel? _apiEarningsData;
+  bool _isLoadingApi = false;
+  String? _apiError;
 
   @override
   void initState() {
@@ -67,9 +79,10 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
       curve: Curves.easeInOut,
     ));
 
+    final initialAmount = widget.useApi ? 0.0 : (widget.earnings?.totalToday ?? 0.0);
     _countUpAnimation = Tween<double>(
       begin: 0.0,
-      end: widget.earnings.totalToday,
+      end: initialAmount,
     ).animate(CurvedAnimation(
       parent: _countUpController,
       curve: Curves.easeOut,
@@ -81,13 +94,18 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
       }
     });
 
-    // Start animations
-    _countUpController.forward();
-    if (widget.isRealTime) {
-      _pulseController.repeat(reverse: true);
+    // Initialize API integration if enabled
+    if (widget.useApi) {
+      _initializeApiIntegration();
+    } else {
+      // Start animations for legacy mode
+      _countUpController.forward();
+      if (widget.isRealTime) {
+        _pulseController.repeat(reverse: true);
+      }
     }
     
-    debugPrint('🔧 EarningsCard: Using shared animation controllers');
+    debugPrint('🔧 EarningsCard: Using shared animation controllers with API: ${widget.useApi}');
   }
 
   @override
@@ -104,26 +122,18 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
       }
     }
 
-    // Animate to new earnings value
-    if (widget.earnings.totalToday != oldWidget.earnings.totalToday) {
-      _countUpController.reset();
-      
-      // Create new animation with updated values
-      _countUpAnimation = Tween<double>(
-        begin: _displayedAmount,
-        end: widget.earnings.totalToday,
-      ).animate(CurvedAnimation(
-        parent: _countUpController,
-        curve: Curves.easeOut,
-      ))..addListener(() {
-        if (mounted) {
-          setState(() {
-            _displayedAmount = _countUpAnimation.value;
-          });
-        }
-      });
-      
-      _countUpController.forward();
+    // Handle API mode changes
+    if (widget.useApi != oldWidget.useApi) {
+      if (widget.useApi) {
+        _initializeApiIntegration();
+      }
+    }
+
+    // Animate to new earnings value (legacy mode)
+    if (!widget.useApi && widget.earnings != null && oldWidget.earnings != null) {
+      if (widget.earnings!.totalToday != oldWidget.earnings!.totalToday) {
+        _animateToNewValue(widget.earnings!.totalToday);
+      }
     }
   }
 
@@ -135,9 +145,128 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
     super.dispose();
   }
 
+  /// Initialize API integration and real-time streams
+  Future<void> _initializeApiIntegration() async {
+    final guardId = AuthService.currentUserId;
+    if (guardId.isEmpty) return;
+    
+    setState(() {
+      _isLoadingApi = true;
+      _apiError = null;
+    });
+    
+    try {
+      // Initialize API service
+      await DashboardApiService.instance.initialize();
+      
+      // Load initial data
+      final initialData = await DashboardApiService.instance.getEarningsData(guardId);
+      
+      if (mounted) {
+        setState(() {
+          _apiEarningsData = initialData;
+          _isLoadingApi = false;
+        });
+        
+        // Animate to API data
+        _animateToNewValue(initialData.todayEarnings);
+      }
+      
+      // Start real-time animations if enabled
+      if (widget.isRealTime) {
+        _pulseController.repeat(reverse: true);
+      }
+      
+      // Listen to real-time updates
+      DashboardApiService.instance.earningsStream.listen(
+        (earningsData) {
+          if (mounted) {
+            setState(() {
+              _apiEarningsData = earningsData;
+            });
+            
+            // Animate to new value
+            _animateToNewValue(earningsData.todayEarnings);
+          }
+        },
+        onError: (error) {
+          if (mounted) {
+            setState(() {
+              _apiError = error.toString();
+            });
+          }
+        },
+      );
+      
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingApi = false;
+          _apiError = e.toString();
+        });
+      }
+    }
+  }
+  
+  /// Animate to new earnings value
+  void _animateToNewValue(double newValue) {
+    _countUpController.reset();
+    
+    // Create new animation with updated values
+    _countUpAnimation = Tween<double>(
+      begin: _displayedAmount,
+      end: newValue,
+    ).animate(CurvedAnimation(
+      parent: _countUpController,
+      curve: Curves.easeOut,
+    ))..addListener(() {
+      if (mounted) {
+        setState(() {
+          _displayedAmount = _countUpAnimation.value;
+        });
+      }
+    });
+    
+    _countUpController.forward();
+  }
+  
+  /// Get current earnings data (API or legacy)
+  EarningsData? get _currentEarningsData {
+    if (widget.useApi) {
+      if (_apiEarningsData != null) {
+        // Convert API model to legacy format for compatibility
+        return EarningsData(
+          todayEarnings: _apiEarningsData!.todayEarnings,
+          weeklyEarnings: _apiEarningsData!.weeklyEarnings,
+          monthlyEarnings: _apiEarningsData!.monthlyEarnings,
+          hoursWorkedToday: _apiEarningsData!.hoursWorkedToday,
+          averageHourlyRate: _apiEarningsData!.averageHourlyRate,
+        );
+      }
+      return null;
+    }
+    return widget.earnings != null ? EarningsData.fromEnhanced(widget.earnings!) : null;
+  }
+  
   @override
   Widget build(BuildContext context) {
     final colorScheme = SecuryFlexTheme.getColorScheme(UserRole.guard);
+    
+    // Show loading state for API
+    if (widget.useApi && _isLoadingApi) {
+      return _buildLoadingState(colorScheme);
+    }
+    
+    // Show error state for API
+    if (widget.useApi && _apiError != null) {
+      return _buildErrorState(colorScheme);
+    }
+    
+    // Get current data
+    final currentData = _currentEarningsData;
+    if (currentData == null) {
+      return _buildEmptyState(colorScheme);
+    }
     
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -152,14 +281,14 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Main earnings display
-                _buildMainEarnings(colorScheme),
+                _buildMainEarnings(colorScheme, currentData),
                 
                 const SizedBox(height: DesignTokens.spacingL),
                 
                 // Additional earnings info
-                _buildEarningsBreakdown(colorScheme),
+                _buildEarningsBreakdown(colorScheme, currentData),
                 
-                if (widget.earnings.overtimeHours > 0) ...[
+                if (!widget.useApi && widget.earnings?.overtimeHours != null && widget.earnings!.overtimeHours > 0) ...[
                   const SizedBox(height: DesignTokens.spacingM),
                   _buildOvertimeInfo(colorScheme),
                 ],
@@ -176,7 +305,7 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
     );
   }
 
-  Widget _buildMainEarnings(ColorScheme colorScheme) {
+  Widget _buildMainEarnings(ColorScheme colorScheme, EarningsData currentData) {
     final displayAmount = _formatDutchCurrency(_displayedAmount);
     
     return Column(
@@ -209,7 +338,7 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
         const SizedBox(height: DesignTokens.spacingS),
         
         Text(
-          '${widget.earnings.hoursWorkedToday.toStringAsFixed(1)} uur gewerkt',
+          '${currentData.hoursWorkedToday.toStringAsFixed(1)} uur gewerkt',
           style: TextStyle(
             fontFamily: DesignTokens.fontFamily,
             fontWeight: DesignTokens.fontWeightRegular,
@@ -221,28 +350,29 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
     );
   }
 
-  Widget _buildEarningsBreakdown(ColorScheme colorScheme) {
+  Widget _buildEarningsBreakdown(ColorScheme colorScheme, EarningsData currentData) {
     return Column(
       children: [
         _buildEarningsRow(
           'Deze week',
-          widget.earnings.dutchFormattedWeek,
-          '${widget.earnings.hoursWorkedWeek.toStringAsFixed(1)}u',
+          _formatDutchCurrency(currentData.weeklyEarnings),
+          null, // Hours not available in simplified API model
           colorScheme,
         ),
         const SizedBox(height: DesignTokens.spacingS),
         _buildEarningsRow(
           'Deze maand',
-          widget.earnings.dutchFormattedMonth,
+          _formatDutchCurrency(currentData.monthlyEarnings),
           null,
           colorScheme,
         ),
         
-        if (widget.earnings.isFreelance) ...[
+        // For API mode, we'll show basic info without freelance calculations
+        if (!widget.useApi && widget.earnings?.isFreelance == true) ...[
           const SizedBox(height: DesignTokens.spacingS),
           _buildEarningsRow(
             'Vakantiegeld (8%)',
-            _formatDutchCurrency(widget.earnings.vakantiegeld),
+            _formatDutchCurrency(widget.earnings!.vakantiegeld),
             null,
             colorScheme,
             isHighlight: true,
@@ -250,10 +380,22 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
           const SizedBox(height: DesignTokens.spacingS),
           _buildEarningsRow(
             'BTW (21%)',
-            _formatDutchCurrency(widget.earnings.btwAmount),
+            _formatDutchCurrency(widget.earnings!.btwAmount),
             null,
             colorScheme,
             isWarning: true,
+          ),
+        ],
+        
+        // Show average hourly rate for API mode
+        if (widget.useApi && currentData.averageHourlyRate > 0) ...[
+          const SizedBox(height: DesignTokens.spacingS),
+          _buildEarningsRow(
+            'Gemiddeld uurtarief',
+            _formatDutchCurrency(currentData.averageHourlyRate),
+            null,
+            colorScheme,
+            isHighlight: true,
           ),
         ],
       ],
@@ -316,7 +458,7 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
   }
 
   Widget _buildOvertimeInfo(ColorScheme colorScheme) {
-    final isCompliant = widget.earnings.isOvertimeCompliant;
+    final isCompliant = widget.earnings?.isOvertimeCompliant ?? true;
     final overtimeColor = isCompliant ? DesignTokens.colorSuccess : DesignTokens.colorError;
     
     return PremiumGlassContainer(
@@ -338,7 +480,7 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
               ),
               const SizedBox(width: DesignTokens.spacingS),
               Text(
-                'Overwerk: ${widget.earnings.overtimeHours.toStringAsFixed(1)}u',
+                'Overwerk: ${widget.earnings?.overtimeHours.toStringAsFixed(1) ?? '0.0'}u',
                 style: TextStyle(
                   fontFamily: DesignTokens.fontFamily,
                   fontWeight: DesignTokens.fontWeightSemiBold,
@@ -351,7 +493,7 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
           const SizedBox(height: DesignTokens.spacingS),
           Text(
             isCompliant 
-                ? 'CAO arbeidsrecht: Conform (${(widget.earnings.overtimeRate / widget.earnings.hourlyRate * 100).toStringAsFixed(0)}% tarief)'
+                ? 'CAO arbeidsrecht: Conform (${((widget.earnings?.overtimeRate ?? 0) / (widget.earnings?.hourlyRate ?? 1) * 100).toStringAsFixed(0)}% tarief)'
                 : 'CAO arbeidsrecht: Niet conform - controleer overwerktarief',
             style: TextStyle(
               fontFamily: DesignTokens.fontFamily,
@@ -389,7 +531,7 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
           ),
           const SizedBox(width: DesignTokens.spacingS),
           Text(
-            'Live bijgewerkt • ${_formatTime(widget.earnings.lastCalculated)}',
+            'Live bijgewerkt • ${_formatTime(widget.earnings?.lastCalculated ?? DateTime.now())}',
             style: TextStyle(
               fontFamily: DesignTokens.fontFamily,
               fontWeight: DesignTokens.fontWeightMedium,
@@ -432,5 +574,144 @@ class _EarningsCardWidgetState extends State<EarningsCardWidget>
     } else {
       return '${dateTime.day}/${dateTime.month} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     }
+  }
+  
+  /// Build loading state for API data
+  Widget _buildLoadingState(ColorScheme colorScheme) {
+    return PremiumSecurityGlassCard(
+      title: 'Verdiensten Vandaag',
+      icon: Icons.euro_symbol,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                ),
+              ),
+              const SizedBox(width: DesignTokens.spacingM),
+              Text(
+                'Verdiensten laden...',
+                style: TextStyle(
+                  fontFamily: DesignTokens.fontFamily,
+                  fontWeight: DesignTokens.fontWeightMedium,
+                  fontSize: DesignTokens.fontSizeBody,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// Build error state for API data
+  Widget _buildErrorState(ColorScheme colorScheme) {
+    return PremiumSecurityGlassCard(
+      title: 'Verdiensten Vandaag',
+      icon: Icons.euro_symbol,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: DesignTokens.colorError,
+                size: DesignTokens.iconSizeM,
+              ),
+              const SizedBox(width: DesignTokens.spacingM),
+              Expanded(
+                child: Text(
+                  'Fout bij laden verdiensten',
+                  style: TextStyle(
+                    fontFamily: DesignTokens.fontFamily,
+                    fontWeight: DesignTokens.fontWeightMedium,
+                    fontSize: DesignTokens.fontSizeBody,
+                    color: DesignTokens.colorError,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignTokens.spacingS),
+          Text(
+            _apiError ?? 'Onbekende fout',
+            style: TextStyle(
+              fontFamily: DesignTokens.fontFamily,
+              fontWeight: DesignTokens.fontWeightRegular,
+              fontSize: DesignTokens.fontSizeCaption,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// Build empty state when no data is available
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return PremiumSecurityGlassCard(
+      title: 'Verdiensten Vandaag',
+      icon: Icons.euro_symbol,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '€0,00',
+            style: TextStyle(
+              fontFamily: DesignTokens.fontFamily,
+              fontWeight: DesignTokens.fontWeightBold,
+              fontSize: DesignTokens.fontSizeDisplayLarge,
+              color: colorScheme.onSurfaceVariant,
+              height: DesignTokens.lineHeightTight,
+            ),
+          ),
+          const SizedBox(height: DesignTokens.spacingS),
+          Text(
+            'Geen diensten vandaag',
+            style: TextStyle(
+              fontFamily: DesignTokens.fontFamily,
+              fontWeight: DesignTokens.fontWeightRegular,
+              fontSize: DesignTokens.fontSizeBody,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Helper class for earnings data compatibility
+class EarningsData {
+  final double todayEarnings;
+  final double weeklyEarnings;
+  final double monthlyEarnings;
+  final double hoursWorkedToday;
+  final double averageHourlyRate;
+  
+  const EarningsData({
+    required this.todayEarnings,
+    required this.weeklyEarnings,
+    required this.monthlyEarnings,
+    required this.hoursWorkedToday,
+    required this.averageHourlyRate,
+  });
+  
+  factory EarningsData.fromEnhanced(EnhancedEarningsData enhanced) {
+    return EarningsData(
+      todayEarnings: enhanced.totalToday,
+      weeklyEarnings: enhanced.totalWeek,
+      monthlyEarnings: enhanced.totalMonth,
+      hoursWorkedToday: enhanced.hoursWorkedToday,
+      averageHourlyRate: enhanced.hourlyRate,
+    );
   }
 }

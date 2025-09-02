@@ -145,6 +145,47 @@ class WeatherData extends Equatable {
     );
   }
 
+  /// JSON serialization
+  factory WeatherData.fromJson(Map<String, dynamic> json) {
+    return WeatherData(
+      temperature: (json['temperature'] as num).toDouble(),
+      feelsLike: (json['feelsLike'] as num).toDouble(),
+      humidity: json['humidity'] as int,
+      windSpeed: (json['windSpeed'] as num).toDouble(),
+      windDirection: json['windDirection'] as String,
+      description: json['description'] as String,
+      dutchDescription: json['dutchDescription'] as String,
+      condition: WeatherCondition.values.firstWhere((e) => e.name == json['condition']),
+      uvIndex: json['uvIndex'] as int,
+      precipitation: (json['precipitation'] as num).toDouble(),
+      visibility: (json['visibility'] as num).toDouble(),
+      timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int),
+      location: json['location'] as String,
+      alerts: (json['alerts'] as List<dynamic>? ?? [])
+          .map((alertJson) => WeatherAlert.fromJson(alertJson as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'temperature': temperature,
+      'feelsLike': feelsLike,
+      'humidity': humidity,
+      'windSpeed': windSpeed,
+      'windDirection': windDirection,
+      'description': description,
+      'dutchDescription': dutchDescription,
+      'condition': condition.name,
+      'uvIndex': uvIndex,
+      'precipitation': precipitation,
+      'visibility': visibility,
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'location': location,
+      'alerts': alerts.map((alert) => alert.toJson()).toList(),
+    };
+  }
+
   @override
   List<Object?> get props => [
     temperature,
@@ -201,6 +242,33 @@ class WeatherAlert extends Equatable {
   bool get isActive {
     final now = DateTime.now();
     return now.isAfter(startTime) && now.isBefore(endTime);
+  }
+
+  /// JSON serialization
+  factory WeatherAlert.fromJson(Map<String, dynamic> json) {
+    return WeatherAlert(
+      id: json['id'] as String,
+      type: WeatherAlertType.values.firstWhere((e) => e.name == json['type']),
+      severity: WeatherAlertSeverity.values.firstWhere((e) => e.name == json['severity']),
+      dutchTitle: json['dutchTitle'] as String,
+      dutchDescription: json['dutchDescription'] as String,
+      startTime: DateTime.fromMillisecondsSinceEpoch(json['startTime'] as int),
+      endTime: DateTime.fromMillisecondsSinceEpoch(json['endTime'] as int),
+      affectedAreas: List<String>.from(json['affectedAreas'] ?? []),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.name,
+      'severity': severity.name,
+      'dutchTitle': dutchTitle,
+      'dutchDescription': dutchDescription,
+      'startTime': startTime.millisecondsSinceEpoch,
+      'endTime': endTime.millisecondsSinceEpoch,
+      'affectedAreas': affectedAreas,
+    };
   }
 
   @override

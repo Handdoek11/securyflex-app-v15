@@ -122,29 +122,47 @@ service cloud.firestore {
                      isWithinRateLimit('user_reads', 100) &&
                      isValidDocumentSize(resource.data);
 
-      // Secure user creation with comprehensive validation
+      // Secure user creation with comprehensive validation (enhanced for social login)
       allow create: if isAuthenticated() && isOwner(userId) &&
                        request.resource.data.email == request.auth.token.email &&
                        isWithinRateLimit('user_creates', 5) &&
                        isFromAllowedRegion() &&
                        // Required fields validation
-                       request.resource.data.keys().hasAll(['email', 'userType', 'createdAt']) &&
-                       request.resource.data.userType in ['guard', 'company'] &&
+                       request.resource.data.keys().hasAll(['email', 'name', 'userType', 'createdAt']) &&
+                       request.resource.data.userType in ['guard', 'company', ''] && // Empty userType for progressive profiling
                        request.resource.data.createdAt is timestamp &&
+                       request.resource.data.name is string &&
+                       // Social login provider validation
+                       (!request.resource.data.keys().hasAny(['provider']) || 
+                        request.resource.data.provider in ['email', 'google', 'microsoft']) &&
+                       // Terms acceptance validation
+                       (!request.resource.data.keys().hasAny(['termsAccepted']) || 
+                        request.resource.data.termsAccepted is bool) &&
+                       (!request.resource.data.keys().hasAny(['termsVersion']) || 
+                        request.resource.data.termsVersion is string) &&
                        // Optional KVK validation for companies
                        (request.resource.data.userType != 'company' || 
                         ('kvkNumber' in request.resource.data && 
                          isValidKvkNumber(request.resource.data.kvkNumber))) &&
                        isValidDocumentSize(request.resource.data);
 
-      // Restricted updates with field-level validation
+      // Restricted updates with field-level validation (enhanced for progressive profiling)
       allow update: if isAuthenticated() && isOwner(userId) &&
                        isWithinRateLimit('user_updates', 20) &&
-                       request.resource.data.userId == resource.data.userId &&
                        request.resource.data.email == resource.data.email &&
                        request.resource.data.createdAt == resource.data.createdAt &&
-                       // Prevent privilege escalation
-                       (request.resource.data.userType == resource.data.userType || hasRole('admin')) &&
+                       // Allow userType updates for progressive profiling (empty to valid type)
+                       (request.resource.data.userType == resource.data.userType || 
+                        (resource.data.userType == '' && request.resource.data.userType in ['guard', 'company']) ||
+                        hasRole('admin')) &&
+                       // Allow provider field to remain unchanged
+                       (!request.resource.data.keys().hasAny(['provider']) || 
+                        request.resource.data.provider == resource.data.provider) &&
+                       // Allow terms acceptance updates
+                       (!request.resource.data.keys().hasAny(['termsAccepted']) || 
+                        request.resource.data.termsAccepted is bool) &&
+                       (!request.resource.data.keys().hasAny(['termsVersion']) || 
+                        request.resource.data.termsVersion is string) &&
                        isValidDocumentSize(request.resource.data);
                        
       // No direct deletion - use GDPR process
@@ -596,6 +614,171 @@ service cloud.firestore {
       allow delete: if hasRole('admin');
     }
 
+    // ========================================
+    // ADDITIONAL SECURYFLEX COLLECTIONS
+    // ========================================
+    
+    // Subscriptions and Billing
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow create, update: if isAuthenticated() && isEmailVerified() && (
+        request.resource.data.userId == request.auth.uid || hasRole('admin')
+      ) && isWithinRateLimit('subscription_updates', 10);
+    }
+    
+    // Payments and Invoices
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() && hasRole('company') &&
+                   request.resource.data.companyId == request.auth.uid;
+    }
+    
+    match /invoices/{invoiceId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.guardId == request.auth.uid ||
+        resource.data.companyId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+    
+    // Shifts and Schedule Management
+    match /shifts/{shiftId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.guardId == request.auth.uid ||
+        resource.data.companyId == request.auth.uid ||
+        hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() && hasRole('company') &&
+                   request.resource.data.companyId == request.auth.uid;
+                   
+      allow update: if isAuthenticated() && isEmailVerified() && (
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        (hasRole('guard') && resource.data.guardId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'checkedIn', 'checkedOut'])) ||
+        hasRole('admin')
+      );
+    }
+    
+    // Time Tracking
+    match /time_entries/{entryId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.guardId == request.auth.uid ||
+        resource.data.companyId == request.auth.uid ||
+        hasRole('admin')
+      );
+      
+      allow create, update: if isAuthenticated() && isEmailVerified() && hasRole('guard') &&
+                           request.resource.data.guardId == request.auth.uid;
+    }
+    
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow update: if isAuthenticated() && isEmailVerified() && 
+                   resource.data.userId == request.auth.uid &&
+                   request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+    }
+    
+    // Guard Profiles (Extended)
+    match /guard_profiles/{guardId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        guardId == request.auth.uid ||
+        hasRole('company') && resource.data.visibility == 'public' ||
+        hasRole('admin')
+      );
+      
+      allow create, update: if isAuthenticated() && isEmailVerified() && (
+        (hasRole('guard') && guardId == request.auth.uid) || hasRole('admin')
+      );
+    }
+    
+    // User Presence
+    match /user_presence/{userId} {
+      allow read: if isAuthenticated() && isEmailVerified();
+      
+      allow write: if isAuthenticated() && isEmailVerified() && userId == request.auth.uid;
+    }
+    
+    // Analytics Events (Write-only for users)
+    match /analytics_events/{eventId} {
+      allow read: if hasRole('admin');
+      
+      allow create: if isAuthenticated() && isEmailVerified() &&
+                   request.resource.data.userId == request.auth.uid &&
+                   isWithinRateLimit('analytics_events', 1000);
+    }
+    
+    // GDPR Requests
+    match /gdpr_requests/{requestId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() &&
+                   request.resource.data.userId == request.auth.uid &&
+                   isWithinRateLimit('gdpr_requests', 5);
+    }
+    
+    // Job Reviews and Ratings
+    match /job_reviews/{reviewId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.guardId == request.auth.uid ||
+        resource.data.companyId == request.auth.uid ||
+        hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() && (
+        (hasRole('guard') && request.resource.data.guardId == request.auth.uid) ||
+        (hasRole('company') && request.resource.data.companyId == request.auth.uid)
+      );
+    }
+    
+    // Job Workflows
+    match /job_workflows/{workflowId} {
+      allow read, update: if isAuthenticated() && isEmailVerified() && (
+        resource.data.guardId == request.auth.uid ||
+        resource.data.companyId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+    
+    // Location Tracking Audit (Encrypted)
+    match /location_tracking_audit/{entryId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.guardId == request.auth.uid ||
+        (hasRole('company') && resource.data.companyId == request.auth.uid) ||
+        hasRole('admin')
+      );
+      
+      allow create: if isAuthenticated() && isEmailVerified() && hasRole('guard') &&
+                   request.resource.data.guardId == request.auth.uid &&
+                   request.resource.data.encryptedData is string;
+    }
+    
+    // BSN Verifications (Highly Sensitive)
+    match /bsn_verifications/{verificationId} {
+      allow read: if isAuthenticated() && isEmailVerified() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+      
+      allow create: if hasRole('admin') && 
+                   request.resource.data.encryptedBsn is string &&
+                   request.resource.data.encryptedBsn.matches('^ENC:.*');
+      
+      allow update: if hasRole('admin');
+      allow delete: if false; // BSN data must be retained for compliance
+    }
+    
     // ========================================
     // PUBLIC CONFIGURATION - HARDENED ACCESS
     // ========================================

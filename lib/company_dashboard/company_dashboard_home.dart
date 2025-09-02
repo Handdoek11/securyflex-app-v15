@@ -502,11 +502,10 @@ class _CompanyDashboardHomeState extends State<CompanyDashboardHome>
                         child: ElevatedButton(
                           onPressed: () {
                             context.pop();
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const JobPostingFormScreen(),
-                              ),
-                            );
+                            context.push('/company/jobs/create');
+                            // Original: context.push('/route-placeholder') => const JobPostingFormScreen(),
+                            //   ),
+                            // );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: companyColors.primary,

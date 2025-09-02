@@ -7,6 +7,7 @@ import '../blocs/schedule_bloc.dart';
 import '../services/schedule_service_provider.dart';
 import '../models/shift_model.dart';
 import '../models/time_entry_model.dart';
+import 'package:go_router/go_router.dart';
 
 /// ScheduleDataFlow - Event dispatching en state management patterns
 ///
@@ -65,7 +66,7 @@ class ScheduleDataFlow {
       await _waitForStateChange(scheduleBloc);
 
       if (showProgress && context.mounted) {
-        Navigator.of(context).pop(); // Close progress dialog
+        context.pop(); // Close progress dialog
       }
 
       return true;
@@ -74,7 +75,7 @@ class ScheduleDataFlow {
       debugPrint('$_logTag: Stack trace: $stackTrace');
 
       if (showProgress && context.mounted) {
-        Navigator.of(context).pop(); // Close progress dialog
+        context.pop(); // Close progress dialog
       }
 
       if (context.mounted) {
@@ -310,7 +311,7 @@ class ScheduleDataFlow {
       await _waitForStateChange(scheduleBloc, timeout: const Duration(seconds: 10));
 
       if (showLoading && context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       debugPrint('$_logTag: Schedule initialization completed');
@@ -321,7 +322,7 @@ class ScheduleDataFlow {
       debugPrint('$_logTag: Stack trace: $stackTrace');
 
       if (showLoading && context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       if (context.mounted) {
@@ -475,7 +476,7 @@ class ScheduleDataFlow {
       await _waitForStateChange(scheduleBloc);
 
       if (showProgress && context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       debugPrint('$_logTag: Batch dispatch completed successfully');
@@ -486,7 +487,7 @@ class ScheduleDataFlow {
       debugPrint('$_logTag: Stack trace: $stackTrace');
 
       if (showProgress && context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       if (context.mounted) {
@@ -658,7 +659,7 @@ class ScheduleDataFlow {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: Text(
               'Sluiten',
               style: TextStyle(

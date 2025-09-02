@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../unified_design_tokens.dart';
+import '../../../unified_components/premium_glass_system.dart';
 import '../../../models/certificates/matching_result_models.dart';
 import '../../../models/certificates/certificate_models.dart';
 
@@ -35,15 +36,12 @@ class CertificateMatchWidget extends StatelessWidget {
         horizontal: DesignTokens.spacingM,
         vertical: DesignTokens.spacingS,
       ),
-      decoration: BoxDecoration(
-        color: DesignTokens.colorWhite,
-        borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-        border: Border.all(
-          color: _getMatchBorderColor(matchType),
-          width: 2.0,
-        ),
-        boxShadow: const [DesignTokens.shadowMedium],
-      ),
+      child: PremiumGlassContainer(
+        intensity: GlassIntensity.standard,
+      elevation: GlassElevation.raised,
+      tintColor: _getMatchBorderColor(matchType),
+      enableTrustBorder: true,
+      borderRadius: BorderRadius.circular(DesignTokens.radiusL),
       child: Column(
         children: [
           // Header with match score
@@ -58,6 +56,7 @@ class CertificateMatchWidget extends StatelessWidget {
           // Action buttons
           _buildActionButtons(effectivePrimaryColor),
         ],
+      ),
       ),
     );
   }

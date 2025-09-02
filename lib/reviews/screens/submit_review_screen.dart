@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
 import 'package:securyflex_app/unified_design_tokens.dart';
@@ -83,7 +84,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
                 backgroundColor: DesignTokens.colorSuccess,
               ),
             );
-            Navigator.of(context).pop(true);
+            context.pop(true);
           } else if (state is ReviewError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

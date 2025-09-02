@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -281,15 +282,18 @@ class UnifiedFilePreview extends StatelessWidget {
   }
 
   void _showImageViewer(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => _ImageViewer(
-          imageUrl: attachment.fileUrl,
-          fileName: attachment.fileName,
-          userRole: userRole,
-        ),
-      ),
-    );
+    context.push('/chat/file-preview', extra: {
+      'imageUrl': attachment.fileUrl,
+      'fileName': attachment.fileName,
+      'userRole': userRole.toString(),
+    });
+    // Original: context.push('/route-placeholder') => _ImageViewer(
+    //       imageUrl: attachment.fileUrl,
+    //       fileName: attachment.fileName,
+    //       userRole: userRole,
+    //     ),
+    //   ),
+    // );
   }
 
   Future<void> _downloadFile() async {

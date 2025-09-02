@@ -43,3 +43,42 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Security - Prevent API keys and secrets from being committed
+.env
+.env.*
+temp_env.txt
+secrets_to_remove.txt
+cleanup_secrets.sh
+**/google-services.json
+**/GoogleService-Info.plist
+firebase-debug.log
+*.keystore
+*.jks
+release-keystore.jks
+
+# Firebase and API configuration
+web/firebase-config.js
+lib/firebase_options_prod.dart
+**/config/keys.dart
+**/config/secrets.dart
+**/*_secrets.*
+**/*_keys.*
+**/*api_key*
+
+# Development and testing
+**/*_test_data.dart
+**/*_demo_data.dart
+test_data/
+mock_data/
+
+# Backup files
+*.backup
+*_backup.*
+backup_*
+
+# Logs and debugging
+*.log
+logs/
+debug/
+crash_logs/

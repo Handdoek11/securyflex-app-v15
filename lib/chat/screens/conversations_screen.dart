@@ -188,7 +188,7 @@ class _ConversationsScreenState extends State<ConversationsScreen>
                 filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusL),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),
@@ -516,7 +516,7 @@ class _ConversationsScreenState extends State<ConversationsScreen>
           padding: EdgeInsets.all(DesignTokens.spacingM),
           margin: EdgeInsets.symmetric(horizontal: DesignTokens.spacingXS),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),  // Matching Jobs and Dashboard
+            color: Colors.transparent,  // Matching Jobs and Dashboard
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.25),
@@ -639,8 +639,8 @@ class _ConversationsScreenState extends State<ConversationsScreen>
                 padding: EdgeInsets.all(DesignTokens.spacingM),
                 decoration: BoxDecoration(
                   color: hasUnread 
-                      ? Colors.white.withValues(alpha: 0.25)  // More opaque for unread
-                      : Colors.white.withValues(alpha: 0.18), // Matching other components
+                      ? Colors.white.withValues(alpha: 0.1)  // Slightly opaque for unread
+                      : Colors.transparent, // Matching other components
                   borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                   border: Border.all(
                     color: hasUnread 

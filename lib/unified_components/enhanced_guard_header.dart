@@ -187,7 +187,7 @@ class _EnhancedGuardHeaderState extends State<EnhancedGuardHeader>
           style: TextStyle(
             fontSize: DesignTokens.fontSizeHeading, // GROTER font
             fontWeight: DesignTokens.fontWeightBold,
-            color: DesignTokens.colorWhite,
+            color: DesignTokens.colorGray800,
             fontFamily: DesignTokens.fontFamily,
             letterSpacing: 1.2, // Meer letter spacing
             shadows: [
@@ -250,7 +250,7 @@ class _EnhancedGuardHeaderState extends State<EnhancedGuardHeader>
                     // DRAMATIC gradient background
                     gradient: LinearGradient(
                       colors: [
-                        DesignTokens.colorWhite.withValues(alpha: 0.2),
+                        DesignTokens.colorGray800.withValues(alpha: 0.2),
                         DesignTokens.colorSecondaryTeal.withValues(alpha: 0.3),
                       ],
                       begin: Alignment.topLeft,
@@ -258,7 +258,7 @@ class _EnhancedGuardHeaderState extends State<EnhancedGuardHeader>
                     ),
                     borderRadius: BorderRadius.circular(DesignTokens.radiusCircular),
                     border: Border.all(
-                      color: DesignTokens.colorWhite.withValues(alpha: 0.4),
+                      color: DesignTokens.colorGray800.withValues(alpha: 0.4),
                       width: 2, // Dikker border
                     ),
                     // Extreme shadow
@@ -279,7 +279,7 @@ class _EnhancedGuardHeaderState extends State<EnhancedGuardHeader>
                         widget.notificationCount > 0 
                             ? Icons.notifications 
                             : Icons.notifications_outlined,
-                        color: DesignTokens.colorWhite,
+                        color: DesignTokens.colorGray800,
                         size: DesignTokens.iconSizeM,
                       ),
                       
@@ -328,7 +328,7 @@ class _EnhancedGuardHeaderState extends State<EnhancedGuardHeader>
               ),
               borderRadius: BorderRadius.circular(DesignTokens.radiusXL),
               border: Border.all(
-                color: DesignTokens.colorWhite,
+                color: DesignTokens.colorGray800,
                 width: 3, // Dikker border
               ),
               boxShadow: [
@@ -355,7 +355,7 @@ class _EnhancedGuardHeaderState extends State<EnhancedGuardHeader>
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeS, // Groter font
                   fontWeight: DesignTokens.fontWeightBold,
-                  color: DesignTokens.colorWhite,
+                  color: DesignTokens.colorGray800,
                   shadows: [
                     Shadow(
                       color: Colors.black.withValues(alpha: 0.8),

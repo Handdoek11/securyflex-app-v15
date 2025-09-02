@@ -51,15 +51,17 @@ class ModernDashboardRoutes {
     };
   }
 
-  /// Create page route with custom transitions
-  static PageRoute<T> createPageRoute<T extends Object?>(
+  /// Create GoRouter 2.0 transition page with custom transitions
+  static CustomTransitionPage<T> createGoRouterTransitionPage<T extends Object?>(
     Widget child,
     UserRole userRole, {
-    RouteSettings? settings,
+    String? name,
+    Object? arguments,
   }) {
-    return PageRouteBuilder<T>(
-      settings: settings,
-      pageBuilder: (context, animation, secondaryAnimation) => child,
+    return CustomTransitionPage<T>(
+      name: name,
+      arguments: arguments,
+      child: child,
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -83,16 +85,13 @@ class ModernDashboardRoutes {
     );
   }
 
-  /// Navigate to dashboard with proper role handling
-  static Future<void> navigateToDashboard(
+  /// Navigate to dashboard with proper role handling (Pure GoRouter 2.0)
+  static void navigateToDashboard(
     BuildContext context,
     UserRole userRole, {
     bool replace = false,
-  }) async {
-    final dashboard = getDashboardForRole(userRole);
-    final route = createPageRoute(dashboard, userRole);
-
-    // 🚀 CONVERTED: Navigator.push/pushReplacement → GoRouter context methods
+  }) {
+    // Pure GoRouter 2.0 navigation - no route building needed
     if (replace) {
       // Use context.go for replacement behavior (clears current route)
       switch (userRole) {

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,6 +23,7 @@ import 'core/bloc/bloc_observer.dart';
 import 'core/performance/app_performance_optimizer.dart';
 import 'core/memory_leak_monitoring_system.dart';
 import 'core/firebase_security_service.dart';
+import 'core/firebase_app_check_service.dart';
 import 'core/services/firebase_analytics_service.dart';
 import 'core/platform_intelligence/adaptive_ui_service.dart';
 import 'core/caching/platform_cache_manager.dart';
@@ -45,6 +46,7 @@ void main() async {
   // Initialize responsive performance monitoring
   ResponsivePerformanceMonitor.instance.initialize();
 
+
   // Optimize app startup performance
   await AppPerformanceOptimizer.optimizeAppStartup();
 
@@ -62,6 +64,19 @@ void main() async {
     } else {
       rethrow;
     }
+  }
+
+  // Initialize Firebase App Check BEFORE any other Firebase services
+  // NOTE: Temporarily disabled during development due to ReCAPTCHA configuration
+  if (!kDebugMode) {
+    try {
+      await FirebaseAppCheckService.instance.initialize();
+    } catch (e) {
+      debugPrint('Firebase App Check initialization failed: $e');
+      throw Exception('Critical security error: App Check failed to initialize');
+    }
+  } else {
+    debugPrint('🛡️ Firebase App Check SKIPPED in development mode');
   }
 
   // Initialize Firebase security validation

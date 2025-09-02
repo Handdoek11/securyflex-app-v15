@@ -162,11 +162,11 @@ class DesignTokens {
   static const Color guardSurfaceContainerHigh = Color(0xFFEDF1F5);      // Medium blue-grey for alerts
   static const Color guardSurfaceContainerHighest = Color(0xFFE8ECF2);   // Strong blue-grey for modals
 
-  static const Color companyPrimary = colorSecondaryTeal;
-  static const Color companyPrimaryLight = colorSecondaryTealLight;
-  static const Color companyAccent = colorPrimaryBlue;
+  static const Color companyPrimary = Color(0xFF475569);      // Professional slate blue
+  static const Color companyPrimaryLight = Color(0xFF64748B);  // Lighter slate for containers  
+  static const Color companyAccent = Color(0xFF334155);        // Darker slate for accents
   static const Color companyTeal = colorSecondaryTeal; // Alias for backward compatibility
-  static const Color companyBackground = Color(0xFFF6F6F6);
+  static const Color companyBackground = Color(0xFFF8FAFC);    // Clean slate-tinted background
   
   // Additional color aliases for backward compatibility
   static const Color revenueGreen = colorSuccess;

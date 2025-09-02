@@ -578,7 +578,7 @@ class _ResponsiveCompanyDashboardState extends State<_ResponsiveCompanyDashboard
         ),
         SizedBox(height: DesignTokens.spacingL),
         // Show drag-drop scheduler or data table with constrained height
-        Container(
+        SizedBox(
           height: 800, // Fixed height to prevent unbounded constraints
           child: DragDropJobScheduler(),
         ),
@@ -599,7 +599,7 @@ class _ResponsiveCompanyDashboardState extends State<_ResponsiveCompanyDashboard
           ),
         ),
         SizedBox(height: DesignTokens.spacingL),
-        Container(
+        SizedBox(
           height: 600, // Fixed height for applications content
           child: useDataTables
             ? _buildApplicationsDataTable(dashboardState)
@@ -624,7 +624,7 @@ class _ResponsiveCompanyDashboardState extends State<_ResponsiveCompanyDashboard
           ),
         ),
         SizedBox(height: DesignTokens.spacingL),
-        Container(
+        SizedBox(
           height: 500, // Fixed height for team content
           child: UnifiedCard.standard(
             userRole: UserRole.company,
@@ -673,7 +673,7 @@ class _ResponsiveCompanyDashboardState extends State<_ResponsiveCompanyDashboard
           ),
         ),
         SizedBox(height: DesignTokens.spacingL),
-        Container(
+        SizedBox(
           height: 500, // Fixed height for messages content
           child: UnifiedCard.standard(
             userRole: UserRole.company,
@@ -725,7 +725,7 @@ class _ResponsiveCompanyDashboardState extends State<_ResponsiveCompanyDashboard
         // Revenue card for finance view
         _buildRevenueCard(isDesktop: true),
         SizedBox(height: DesignTokens.spacingL),
-        Container(
+        SizedBox(
           height: 400, // Fixed height for finance content
           child: UnifiedCard.standard(
             userRole: UserRole.company,

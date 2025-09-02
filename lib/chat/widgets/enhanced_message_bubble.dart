@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../unified_design_tokens.dart';
@@ -961,7 +962,7 @@ class _EnhancedMessageBubbleState extends State<EnhancedMessageBubble>
         content: Text(detailedInfo),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('OK'),
           ),
         ],

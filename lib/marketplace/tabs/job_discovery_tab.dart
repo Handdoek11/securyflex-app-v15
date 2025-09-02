@@ -668,13 +668,7 @@ class _JobDiscoveryTabState extends State<JobDiscoveryTab> {
                     onTap: () async {
                       FocusScope.of(context).requestFocus(FocusNode());
                       // Following template pattern: await navigation and refresh data
-                      await Navigator.push<dynamic>(
-                        context,
-                        MaterialPageRoute<dynamic>(
-                          builder: (BuildContext context) => JobFiltersScreen(),
-                          fullscreenDialog: true,
-                        ),
-                      );
+                      await context.push('/job-filters'); // Converted from Navigator.push to GoRouter
                       // Refresh data after returning from filters
                       setState(() {
                         jobList = JobStateManager.filteredJobs;

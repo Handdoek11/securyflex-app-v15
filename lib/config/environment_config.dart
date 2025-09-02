@@ -22,7 +22,7 @@ class EnvironmentConfig {
       if (kDebugMode) {
         debugPrint('WARNING: FIREBASE_WEB_API_KEY not configured - using development default');
       }
-      return 'AIzaSyCs09ATGwyR1QxMeG-2AtPezzX97zQYgEQ'; // Development default from .env
+      return 'AIzaSyDwcm7oamPkzlDyiuExwOpV2yFH6mdEg4c'; // Development default from Firebase Console
     }
     return key;
   }
@@ -34,7 +34,7 @@ class EnvironmentConfig {
       if (kDebugMode) {
         debugPrint('WARNING: FIREBASE_ANDROID_API_KEY not configured - using development default');
       }
-      return 'AIzaSyCs09ATGwyR1QxMeG-2AtPezzX97zQYgEQ'; // Development default from .env
+      return 'AIzaSyDwcm7oamPkzlDyiuExwOpV2yFH6mdEg4c'; // Development default from Firebase Console
     }
     return key;
   }
@@ -46,7 +46,7 @@ class EnvironmentConfig {
       if (kDebugMode) {
         debugPrint('WARNING: FIREBASE_IOS_API_KEY not configured - using development default');
       }
-      return 'AIzaSyCs09ATGwyR1QxMeG-2AtPezzX97zQYgEQ'; // Development default from .env
+      return 'AIzaSyDwcm7oamPkzlDyiuExwOpV2yFH6mdEg4c'; // Development default from Firebase Console
     }
     return key;
   }
@@ -56,7 +56,7 @@ class EnvironmentConfig {
     const projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
     if (projectId.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_PROJECT_ID not configured - using development default');
-      return 'securyflex-dev'; // Development default
+      return 'securyflex-cf93b'; // Development default (updated)
     }
     return projectId;
   }
@@ -66,7 +66,7 @@ class EnvironmentConfig {
     const senderId = String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID');
     if (senderId.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_MESSAGING_SENDER_ID not configured - using development default');
-      return '1043280489748'; // Development default
+      return '869360243690'; // Development default (updated)
     }
     return senderId;
   }
@@ -76,7 +76,7 @@ class EnvironmentConfig {
     const appId = String.fromEnvironment('FIREBASE_WEB_APP_ID');
     if (appId.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_WEB_APP_ID not configured - using development default');
-      return '1:1043280489748:web:f2d1e0549ab4a4f7486601'; // Development default
+      return '1:869360243690:web:f2d1e0549ab4a4f7409893'; // Development default (updated)
     }
     return appId;
   }
@@ -86,7 +86,7 @@ class EnvironmentConfig {
     const appId = String.fromEnvironment('FIREBASE_ANDROID_APP_ID');
     if (appId.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_ANDROID_APP_ID not configured - using development default');
-      return '1:1043280489748:android:528cb22920e84820486601'; // Development default
+      return '1:869360243690:android:d712276dd2383028409893'; // Development default (updated)
     }
     return appId;
   }
@@ -96,7 +96,7 @@ class EnvironmentConfig {
     const appId = String.fromEnvironment('FIREBASE_IOS_APP_ID');
     if (appId.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_IOS_APP_ID not configured - using development default');
-      return '1:1043280489748:ios:f21bb8a9a843ed31486601'; // Development default
+      return '1:869360243690:ios:f21bb8a9a843ed31409893'; // Development default (updated)
     }
     return appId;
   }
@@ -106,7 +106,7 @@ class EnvironmentConfig {
     const domain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
     if (domain.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_AUTH_DOMAIN not configured - using development default');
-      return 'securyflex-dev.firebaseapp.com'; // Development default
+      return 'securyflex-cf93b.firebaseapp.com'; // Development default (updated)
     }
     return domain;
   }
@@ -116,7 +116,7 @@ class EnvironmentConfig {
     const bucket = String.fromEnvironment('FIREBASE_STORAGE_BUCKET');
     if (bucket.isEmpty && kDebugMode) {
       debugPrint('WARNING: FIREBASE_STORAGE_BUCKET not configured - using development default');
-      return 'securyflex-dev.firebasestorage.app'; // Development default
+      return 'securyflex-cf93b.firebasestorage.app'; // Development default (updated)
     }
     return bucket;
   }
@@ -433,7 +433,7 @@ class EnvironmentConfig {
       default:
         return {
           'FLUTTER_ENV': 'development',
-          'FIREBASE_PROJECT_ID': 'securyflex-dev',
+          'FIREBASE_PROJECT_ID': 'securyflex-cf93b',
           // Development uses defaults defined in this class
           // Demo credentials can be set via environment variables:
           // 'DEMO_GUARD_EMAIL': 'guard@securyflex.nl',

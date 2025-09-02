@@ -44,7 +44,7 @@ void main() async {
     // Check if go_router import exists, if not add it
     if (!content.contains("import 'package:go_router/go_router.dart';")) {
       // Find the last import statement
-      final importRegex = RegExp(r'^import\s+[\'""].*[\'""];', multiLine: true);
+      final importRegex = RegExp(r'^import\s+.+;', multiLine: true);
       final matches = importRegex.allMatches(content).toList();
       if (matches.isNotEmpty) {
         final lastImport = matches.last;

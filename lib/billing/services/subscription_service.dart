@@ -24,15 +24,11 @@ class SubscriptionService {
 
   static SubscriptionService? _instance;
   static SubscriptionService get instance {
-    if (_instance == null) {
-      // Create minimal instance for development
-      // In production, proper dependency injection would be used
-      _instance = SubscriptionService(
+    _instance ??= SubscriptionService(
         repository: SubscriptionRepository(),
         paymentService: _createMockPaymentService(),
         invoiceService: _createMockInvoiceService(),
       );
-    }
     return _instance!;
   }
   

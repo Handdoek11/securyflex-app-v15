@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/demo_application_to_shift_converter.dart';
 import '../../beveiliger_agenda/models/shift_data.dart';
 import '../../unified_design_tokens.dart';
@@ -424,10 +425,11 @@ class _ActiveJobsTabState extends State<ActiveJobsTab> {
   
   void _navigateToPlanning(ShiftData shift) {
     // Navigate to planning screen with this shift selected
-    Navigator.pushNamed(
-      context,
-      '/planning',
-      arguments: {'selectedShiftId': shift.id},
-    );
+    context.push('/beveiliger/schedule');
+    // Original: Navigator.pushNamed(
+    //   context,
+    //   '/planning',
+    //   arguments: {'selectedShiftId': shift.id},
+    // );
   }
 }

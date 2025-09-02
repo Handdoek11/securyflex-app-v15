@@ -4,6 +4,7 @@ import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
 import '../../unified_components/premium_glass_system.dart';
 import '../../core/shared_animation_controller.dart';
+import '../services/maps_location_service.dart';
 
 /// Enhanced Emergency Shift Alert Widget for Dashboard
 /// 
@@ -23,6 +24,7 @@ class EmergencyShiftAlertWidget extends StatefulWidget {
   final VoidCallback? onRefreshShifts;
   final bool isLoading;
   final String? currentLocation;
+  final bool enableRealTimeLocation;
 
   const EmergencyShiftAlertWidget({
     super.key,
@@ -32,6 +34,7 @@ class EmergencyShiftAlertWidget extends StatefulWidget {
     this.onRefreshShifts,
     this.isLoading = false,
     this.currentLocation,
+    this.enableRealTimeLocation = true,
   });
 
   @override
@@ -44,11 +47,20 @@ class _EmergencyShiftAlertWidgetState extends State<EmergencyShiftAlertWidget>
   late AnimationController _slideController;
   late Animation<double> _pulseAnimation;
   late Animation<Offset> _slideAnimation;
+  
+  // Maps integration
+  final Map<String, double> _shiftDistances = {};
+  bool _isLoadingDistances = false;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
+    
+    // Initialize Maps service if real-time location is enabled
+    if (widget.enableRealTimeLocation) {
+      _initializeMapsService();
+    }
   }
 
   void _initializeAnimations() {
@@ -93,21 +105,6 @@ class _EmergencyShiftAlertWidgetState extends State<EmergencyShiftAlertWidget>
     debugPrint('🔧 EmergencyShiftAlert: Using shared animation controllers');
   }
 
-  @override
-  void didUpdateWidget(EmergencyShiftAlertWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    
-    if (widget.emergencyShifts.isNotEmpty && oldWidget.emergencyShifts.isEmpty) {
-      _pulseController.repeat(reverse: true);
-      _slideController.forward();
-      
-      // Trigger haptic feedback for new emergency
-      HapticFeedback.heavyImpact();
-    } else if (widget.emergencyShifts.isEmpty && oldWidget.emergencyShifts.isNotEmpty) {
-      _pulseController.stop();
-      _slideController.reverse();
-    }
-  }
 
   @override
   void dispose() {
@@ -366,7 +363,8 @@ class _EmergencyShiftAlertWidgetState extends State<EmergencyShiftAlertWidget>
 
   Widget _buildEmergencyShiftCard(EmergencyShift shift, ColorScheme colorScheme) {
     final urgencyColor = _getUrgencyColor(shift.urgencyLevel);
-    final distance = _calculateDistance(shift.location);
+    final distance = _getShiftDistance(shift);
+    final isLoadingDistance = _isLoadingDistances && !_shiftDistances.containsKey(shift.id);
 
     return Container(
       margin: const EdgeInsets.only(bottom: DesignTokens.spacingM),
@@ -447,7 +445,7 @@ class _EmergencyShiftAlertWidgetState extends State<EmergencyShiftAlertWidget>
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (distance != null) ...[
+                    if (isLoadingDistance) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: DesignTokens.spacingXS,
@@ -457,14 +455,44 @@ class _EmergencyShiftAlertWidgetState extends State<EmergencyShiftAlertWidget>
                           color: DesignTokens.colorInfo.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(DesignTokens.radiusXS),
                         ),
-                        child: Text(
-                          '${distance}km',
-                          style: TextStyle(
-                            fontFamily: DesignTokens.fontFamily,
-                            fontWeight: DesignTokens.fontWeightMedium,
-                            fontSize: DesignTokens.fontSizeCaption,
-                            color: DesignTokens.colorInfo,
+                        child: SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(DesignTokens.colorInfo),
                           ),
+                        ),
+                      ),
+                    ] else if (distance != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesignTokens.spacingXS,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getDistanceColor(distance).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(DesignTokens.radiusXS),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.navigation,
+                              size: 10,
+                              color: _getDistanceColor(distance),
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${distance.toStringAsFixed(1)}km',
+                              style: TextStyle(
+                                fontFamily: DesignTokens.fontFamily,
+                                fontWeight: DesignTokens.fontWeightMedium,
+                                fontSize: DesignTokens.fontSizeCaption,
+                                color: _getDistanceColor(distance),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -665,13 +693,106 @@ class _EmergencyShiftAlertWidgetState extends State<EmergencyShiftAlertWidget>
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
-
-  double? _calculateDistance(String shiftLocation) {
-    // Mock distance calculation - in real app, use GPS coordinates
-    if (widget.currentLocation == null) return null;
+  
+  /// Get color based on distance (green for close, red for far)
+  Color _getDistanceColor(double distanceKm) {
+    if (distanceKm <= 5) {
+      return DesignTokens.colorSuccess;
+    } else if (distanceKm <= 15) {
+      return DesignTokens.colorWarning;
+    } else {
+      return DesignTokens.colorError;
+    }
+  }
+  
+  @override
+  void didUpdateWidget(EmergencyShiftAlertWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
     
-    // Simple mock calculation
-    return (5 + (shiftLocation.length % 20)).toDouble();
+    // Recalculate distances when shifts change
+    if (widget.emergencyShifts != oldWidget.emergencyShifts ||
+        widget.enableRealTimeLocation != oldWidget.enableRealTimeLocation) {
+      if (widget.enableRealTimeLocation) {
+        _calculateAllDistances();
+      } else {
+        setState(() {
+          _shiftDistances.clear();
+        });
+      }
+    }
+    
+    if (widget.emergencyShifts.isNotEmpty && oldWidget.emergencyShifts.isEmpty) {
+      _pulseController.repeat(reverse: true);
+      _slideController.forward();
+      
+      // Trigger haptic feedback for new emergency
+      HapticFeedback.heavyImpact();
+    } else if (widget.emergencyShifts.isEmpty && oldWidget.emergencyShifts.isNotEmpty) {
+      _pulseController.stop();
+      _slideController.reverse();
+    }
+  }
+
+  /// Initialize Maps service for real-time location tracking
+  Future<void> _initializeMapsService() async {
+    try {
+      await MapsLocationService.instance.initialize();
+      
+      // Calculate distances for all emergency shifts
+      await _calculateAllDistances();
+      
+    } catch (e) {
+      if (mounted) {
+        debugPrint('🗺️ EmergencyShift: Maps service init failed: $e');
+      }
+    }
+  }
+  
+  /// Calculate distances to all emergency shifts
+  Future<void> _calculateAllDistances() async {
+    if (widget.emergencyShifts.isEmpty || !widget.enableRealTimeLocation) return;
+    
+    setState(() {
+      _isLoadingDistances = true;
+    });
+    
+    try {
+      for (final shift in widget.emergencyShifts) {
+        // For demo purposes, we'll use mock coordinates
+        // In production, shifts would have real lat/lng from API
+        final mockLatitude = 52.3676 + (shift.id.hashCode % 100) * 0.001;
+        final mockLongitude = 4.9041 + (shift.id.hashCode % 50) * 0.001;
+        
+        final distance = await MapsLocationService.instance.calculateDistanceFromCurrent(
+          mockLatitude,
+          mockLongitude,
+        );
+        
+        if (distance != null && mounted) {
+          setState(() {
+            _shiftDistances[shift.id] = distance;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('🗺️ EmergencyShift: Distance calculation failed: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingDistances = false;
+        });
+      }
+    }
+  }
+  
+  /// Get calculated distance for shift, with fallback
+  double? _getShiftDistance(EmergencyShift shift) {
+    if (!widget.enableRealTimeLocation) {
+      // Fallback to mock calculation
+      return (5 + (shift.location.length % 20)).toDouble();
+    }
+    
+    return _shiftDistances[shift.id];
   }
 }
 

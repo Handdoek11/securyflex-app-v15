@@ -533,10 +533,11 @@ class CompanyProfileOverview extends StatelessWidget {
 
               if (context.mounted) {
                 // Navigate to login screen
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/login',
-                  (route) => false,
-                );
+                context.go('/login');
+                // Original: Navigator.of(context).pushNamedAndRemoveUntil(
+                //   '/login',
+                //   (route) => false,
+                // );
               }
             },
             child: Text(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
+import 'package:securyflex_app/unified_theme_system.dart';
+import 'package:securyflex_app/unified_components/premium_glass_system.dart';
 import '../../core/shared_animation_controller.dart';
 
 class LoadingStateWidget extends StatefulWidget {
@@ -54,23 +56,18 @@ class _LoadingStateWidgetState extends State<LoadingStateWidget>
             child: Padding(
               padding: const EdgeInsets.only(
                   left: 24, right: 24, top: 16, bottom: 18),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: DesignTokens.colorWhite,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8.0),
-                      bottomLeft: Radius.circular(8.0),
-                      bottomRight: Radius.circular(8.0),
-                      topRight: Radius.circular(68.0)),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                        color: DesignTokens.colorGray500.withValues(alpha: 0.2),
-                        offset: Offset(1.1, 1.1),
-                        blurRadius: 10.0),
-                  ],
+              child: PremiumGlassContainer(
+                intensity: GlassIntensity.standard,
+                elevation: GlassElevation.floating,
+                tintColor: SecuryFlexTheme.getColorScheme(UserRole.guard).surfaceContainerHighest,
+                enableTrustBorder: true,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  bottomLeft: Radius.circular(8.0),
+                  bottomRight: Radius.circular(8.0),
+                  topRight: Radius.circular(68.0),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
                       _buildShimmerLine(width: 120, height: 16),
@@ -90,7 +87,6 @@ class _LoadingStateWidgetState extends State<LoadingStateWidget>
                       ),
                     ],
                   ),
-                ),
               ),
             ),
           ),

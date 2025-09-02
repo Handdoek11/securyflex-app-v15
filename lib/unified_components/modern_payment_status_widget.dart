@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../unified_design_tokens.dart';
 import '../unified_theme_system.dart';
 import '../workflow/models/job_workflow_models.dart';
+import 'premium_glass_system.dart';
+import 'premium_typography_system.dart';
 
 /// Payment status data model
 class PaymentStatusData {
@@ -28,6 +30,29 @@ class PaymentStatusData {
       pendingCompletions: [],
     );
   }
+
+  /// JSON serialization
+  factory PaymentStatusData.fromJson(Map<String, dynamic> json) {
+    return PaymentStatusData(
+      pendingPayments: (json['pendingPayments'] as num).toDouble(),
+      monthlyTotal: (json['monthlyTotal'] as num).toDouble(),
+      recentPayments: (json['recentPayments'] as List<dynamic>)
+          .map((paymentJson) => RecentPayment.fromJson(paymentJson as Map<String, dynamic>))
+          .toList(),
+      pendingCompletions: (json['pendingCompletions'] as List<dynamic>)
+          .map((completionJson) => JobCompletionStatus.fromJson(completionJson as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pendingPayments': pendingPayments,
+      'monthlyTotal': monthlyTotal,
+      'recentPayments': recentPayments.map((payment) => payment.toJson()).toList(),
+      'pendingCompletions': pendingCompletions.map((completion) => completion.toJson()).toList(),
+    };
+  }
 }
 
 /// Recent payment model
@@ -46,6 +71,26 @@ class RecentPayment {
     required this.status,
   });
 
+  /// JSON serialization
+  factory RecentPayment.fromJson(Map<String, dynamic> json) {
+    return RecentPayment(
+      id: json['id'] as String,
+      jobTitle: json['jobTitle'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      paidDate: DateTime.fromMillisecondsSinceEpoch(json['paidDate'] as int),
+      status: PaymentStatus.values.firstWhere((e) => e.name == json['status']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'jobTitle': jobTitle,
+      'amount': amount,
+      'paidDate': paidDate.millisecondsSinceEpoch,
+      'status': status.name,
+    };
+  }
 }
 
 /// Job completion status model
@@ -64,6 +109,26 @@ class JobCompletionStatus {
     required this.completedAt,
   });
 
+  /// JSON serialization
+  factory JobCompletionStatus.fromJson(Map<String, dynamic> json) {
+    return JobCompletionStatus(
+      jobId: json['jobId'] as String,
+      title: json['title'] as String,
+      state: JobWorkflowState.values.firstWhere((e) => e.name == json['state']),
+      estimatedPayout: (json['estimatedPayout'] as num).toDouble(),
+      completedAt: DateTime.fromMillisecondsSinceEpoch(json['completedAt'] as int),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'jobId': jobId,
+      'title': title,
+      'state': state.name,
+      'estimatedPayout': estimatedPayout,
+      'completedAt': completedAt.millisecondsSinceEpoch,
+    };
+  }
 }
 
 enum PaymentStatus {
@@ -105,50 +170,26 @@ class ModernPaymentStatusWidget extends StatelessWidget {
         children: [
           // Section header
           Padding(
-            padding: EdgeInsets.only(
-              left: DesignTokens.spacingS,
-              bottom: DesignTokens.spacingM,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Betalingen & Uitkeringen',
-                  style: TextStyle(
-                    fontFamily: DesignTokens.fontFamily,
-                    fontSize: DesignTokens.fontSizeXL,
-                    fontWeight: DesignTokens.fontWeightBold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                if (onViewAllPayments != null)
-                  TextButton(
-                    onPressed: onViewAllPayments,
-                    child: Text(
-                      'Alles bekijken',
-                      style: TextStyle(
-                        fontFamily: DesignTokens.fontFamily,
-                        fontSize: DesignTokens.fontSizeCaption,
-                        fontWeight: DesignTokens.fontWeightMedium,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-              ],
+            padding: EdgeInsets.only(bottom: DesignTokens.spacingM),
+            child: Text(
+              'Betalingen & Uitkeringen',
+              style: TextStyle(
+                fontFamily: DesignTokens.fontFamily,
+                fontSize: DesignTokens.fontSizeTitle,
+                fontWeight: DesignTokens.fontWeightBold,
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
 
-          // Payment overview card
-          Container(
+          // Premium glass payment overview card
+          PremiumGlassContainer(
+            intensity: GlassIntensity.standard,
+            elevation: GlassElevation.floating,
+            tintColor: DesignTokens.colorSuccess,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusL),
             padding: EdgeInsets.all(DesignTokens.spacingL),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
+            enableTrustBorder: true,
             child: Column(
               children: [
                 // Payment summary
@@ -156,6 +197,7 @@ class ModernPaymentStatusWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _buildPaymentSummaryItem(
+                        context,
                         'Uitstaande betalingen',
                         '€${paymentData.pendingPayments.toStringAsFixed(2)}',
                         Icons.pending_actions,
@@ -170,6 +212,7 @@ class ModernPaymentStatusWidget extends StatelessWidget {
                     ),
                     Expanded(
                       child: _buildPaymentSummaryItem(
+                        context,
                         'Deze maand',
                         '€${paymentData.monthlyTotal.toStringAsFixed(2)}',
                         Icons.account_balance_wallet,
@@ -206,6 +249,7 @@ class ModernPaymentStatusWidget extends StatelessWidget {
   }
 
   Widget _buildPaymentSummaryItem(
+    BuildContext context,
     String label,
     String amount,
     IconData icon,
@@ -222,20 +266,18 @@ class ModernPaymentStatusWidget extends StatelessWidget {
         SizedBox(height: DesignTokens.spacingS),
         Text(
           amount,
-          style: TextStyle(
-            fontFamily: DesignTokens.fontFamily,
-            fontSize: DesignTokens.fontSizeXL,
-            fontWeight: DesignTokens.fontWeightBold,
-            color: colorScheme.onSurface,
+          style: PremiumTypography.financialDisplay(
+            context,
+            color: color,
+            isLarge: true,
           ),
         ),
         Text(
           label,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: DesignTokens.fontFamily,
-            fontSize: DesignTokens.fontSizeCaption,
-            color: colorScheme.onSurfaceVariant,
+          style: PremiumTypography.professionalCaption(
+            context,
+            role: UserRole.guard,
           ),
         ),
       ],

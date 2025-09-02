@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:ui';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:securyflex_app/auth/auth_service.dart';
 import '../unified_design_tokens.dart';
 import '../routing/app_routes.dart';
@@ -20,26 +22,56 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
 
   bool _isLoading = false;
   bool _showPassword = false;
   String _errorMessage = '';
+  bool _rememberMe = false;
 
   @override
   void initState() {
+    super.initState();
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
     );
     _animationController?.forward();
-    super.initState();
+    
+    // Load remembered email if exists
+    _loadRememberedEmail();
+    
+    // Auto-focus email field for better UX
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _emailFocusNode.requestFocus();
+    });
+  }
+  
+  Future<void> _loadRememberedEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rememberedEmail = prefs.getString('remembered_email');
+    if (rememberedEmail != null) {
+      setState(() {
+        _emailController.text = rememberedEmail;
+        _rememberMe = true;
+      });
+      // Focus password field if email is pre-filled
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _passwordFocusNode.requestFocus();
+      });
+    }
   }
 
   @override
   void dispose() {
+    // Stop animation before disposing to prevent rendering issues
+    _animationController?.stop();
     _animationController?.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -100,6 +132,35 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
   }
 
   Widget _buildGlassHeader() {
+    // Safety check to prevent disposed animation controller usage
+    if (_animationController == null || !mounted) {
+      return Container(
+        padding: EdgeInsets.all(DesignTokens.spacingXL),
+        child: SizedBox(
+          height: 220,
+          child: Image.asset(
+            'assets/images/gruwelijk-logo.png',
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 120,
+                width: 120,
+                decoration: BoxDecoration(
+                  color: DesignTokens.colorWhite.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(DesignTokens.radiusXL),
+                ),
+                child: Icon(
+                  Icons.security,
+                  size: 80,
+                  color: DesignTokens.colorWhite.withValues(alpha: 0.9),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
     final slideAnimation = Tween<Offset>(begin: Offset(0, -1), end: Offset(0, 0)).animate(
       CurvedAnimation(
         parent: _animationController!,
@@ -112,7 +173,7 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
       child: Container(
         padding: EdgeInsets.all(DesignTokens.spacingXL),
         child: SizedBox(
-          height: 300,
+          height: 220,
           child: Image.asset(
             'assets/images/gruwelijk-logo.png',
             fit: BoxFit.contain,
@@ -139,6 +200,32 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
   }
 
   Widget _buildGlassLoginForm() {
+    // Safety check to prevent disposed animation controller usage
+    if (_animationController == null || !mounted) {
+      return _buildBasicGlassContainer(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              _buildGlassEmailField(),
+              SizedBox(height: DesignTokens.spacingL),
+              _buildGlassPasswordField(),
+              SizedBox(height: DesignTokens.spacingM),
+              _buildRememberMeRow(),
+              SizedBox(height: DesignTokens.spacingL),
+              _buildGlassLoginButton(),
+              SizedBox(height: DesignTokens.spacingL),
+              _buildDivider(),
+              SizedBox(height: DesignTokens.spacingL),
+              _buildSocialLoginButtons(),
+              SizedBox(height: DesignTokens.spacingXL),
+              _buildRegistrationLink(),
+            ],
+          ),
+        ),
+      );
+    }
+
     final formAnimation = Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0)).animate(
       CurvedAnimation(
         parent: _animationController!,
@@ -159,6 +246,8 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
                 _buildGlassEmailField(),
                 SizedBox(height: DesignTokens.spacingM),
                 _buildGlassPasswordField(),
+                SizedBox(height: DesignTokens.spacingM),
+                _buildRememberMeRow(),
                 if (_errorMessage.isNotEmpty) ...[
                   SizedBox(height: DesignTokens.spacingM),
                   _buildErrorMessage(),
@@ -167,6 +256,10 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
                 _buildForgotPasswordLink(),
                 SizedBox(height: DesignTokens.spacingL),
                 _buildGlassLoginButton(),
+                SizedBox(height: DesignTokens.spacingL),
+                _buildDivider(),
+                SizedBox(height: DesignTokens.spacingL),
+                _buildSocialLoginButtons(),
                 SizedBox(height: DesignTokens.spacingXL),
                 _buildRegistrationLink(),
               ],
@@ -218,7 +311,10 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
       ),
       child: TextFormField(
         controller: _emailController,
+        focusNode: _emailFocusNode,
         keyboardType: TextInputType.emailAddress,
+        textInputAction: TextInputAction.next,
+        onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
         style: TextStyle(
           color: DesignTokens.colorGray800,
           fontSize: DesignTokens.fontSizeBody,
@@ -267,7 +363,10 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
       ),
       child: TextFormField(
         controller: _passwordController,
+        focusNode: _passwordFocusNode,
         obscureText: !_showPassword,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _handleLogin(),
         style: TextStyle(
           color: DesignTokens.colorGray800,
           fontSize: DesignTokens.fontSizeBody,
@@ -403,64 +502,184 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
   }
 
   Widget _buildRegistrationLink() {
-    return SizedBox(
-      width: double.infinity,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Color(0xFF475569).withValues(alpha: 0.25), // More visible professional glass
-              borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-              border: Border.all(
-                color: Color(0xFF64748B).withValues(alpha: 0.4), // More visible professional border
-                width: 1.5,
-              ),
+    return GestureDetector(
+      onTap: () {
+        // Use safe navigation with scheduler
+        if (mounted) {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              context.go('/register/progressive');
+            }
+          });
+        }
+      },
+      child: Center(
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: DesignTokens.fontSizeMeta,
+              fontFamily: DesignTokens.fontFamily,
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-                onTap: () {
-                  // Use GoRouter navigation
-                  context.go(AppRoutes.register);
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: DesignTokens.spacingL,
-                    vertical: DesignTokens.spacingM,
-                  ),
-                  child: Center(
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontSize: DesignTokens.fontSizeBody,
-                          fontFamily: DesignTokens.fontFamily,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Nog geen account? ',
-                            style: TextStyle(
-                              color: Color(0xFFE2E8F0), // Professional slate 200 - secondary text
-                              fontWeight: DesignTokens.fontWeightRegular,
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'Registreer hier',
-                            style: TextStyle(
-                              color: Color(0xFFFFFFFF), // Professional pure white - primary accent text
-                              fontWeight: DesignTokens.fontWeightBold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Color(0xFFF59E0B), // Professional amber underline
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+            children: [
+              TextSpan(
+                text: 'Nog geen account? ',
+                style: TextStyle(
+                  color: Color(0xFFE2E8F0), // Professional slate 200 - secondary text
+                  fontWeight: DesignTokens.fontWeightRegular,
                 ),
               ),
+              TextSpan(
+                text: 'Registreer hier',
+                style: TextStyle(
+                  color: Color(0xFFFFFFFF), // Professional pure white - primary accent text
+                  fontWeight: DesignTokens.fontWeightBold,
+                  decoration: TextDecoration.underline,
+                  decorationColor: Color(0xFFF59E0B), // Professional amber underline
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRememberMeRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              height: 24,
+              width: 24,
+              child: Checkbox(
+                value: _rememberMe,
+                onChanged: (value) {
+                  setState(() {
+                    _rememberMe = value ?? false;
+                  });
+                },
+                activeColor: Color(0xFFF59E0B),
+                fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Color(0xFFF59E0B);
+                  }
+                  return Colors.transparent;
+                }),
+                side: BorderSide(
+                  color: DesignTokens.colorWhite.withValues(alpha: 0.5),
+                  width: 2,
+                ),
+              ),
+            ),
+            SizedBox(width: DesignTokens.spacingS),
+            Text(
+              'Onthoud mij',
+              style: TextStyle(
+                color: DesignTokens.colorWhite.withValues(alpha: 0.9),
+                fontSize: DesignTokens.fontSizeBody,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 1,
+            color: DesignTokens.colorWhite.withValues(alpha: 0.2),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingM),
+          child: Text(
+            'of login met',
+            style: TextStyle(
+              color: DesignTokens.colorWhite.withValues(alpha: 0.7),
+              fontSize: DesignTokens.fontSizeS,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            height: 1,
+            color: DesignTokens.colorWhite.withValues(alpha: 0.2),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialLoginButtons() {
+    return Column(
+      children: [
+        // Microsoft SSO button
+        _buildSocialLoginButton(
+          icon: Icons.business,
+          label: 'Microsoft (Zakelijk)',
+          onTap: _handleMicrosoftLogin,
+          primaryColor: Color(0xFF0078D4),
+        ),
+        SizedBox(height: DesignTokens.spacingM),
+        // Google Sign-In button
+        _buildSocialLoginButton(
+          icon: Icons.g_mobiledata,
+          label: 'Google',
+          onTap: _handleGoogleLogin,
+          primaryColor: Color(0xFF4285F4),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialLoginButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required Color primaryColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+        color: DesignTokens.colorWhite.withValues(alpha: 0.1),
+        border: Border.all(
+          color: DesignTokens.colorWhite.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingM),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: primaryColor,
+                  size: 24,
+                ),
+                SizedBox(width: DesignTokens.spacingM),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: DesignTokens.colorWhite,
+                    fontSize: DesignTokens.fontSizeBody,
+                    fontWeight: DesignTokens.fontWeightMedium,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -511,6 +730,15 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
       _errorMessage = '';
     });
 
+    // Save email if Remember Me is checked
+    if (_rememberMe) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('remembered_email', _emailController.text.trim());
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('remembered_email');
+    }
+
     try {
       final result = await AuthService.loginWithResult(
         _emailController.text.trim(),
@@ -519,13 +747,8 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
 
       if (mounted) {
         if (result.isSuccess) {
-          // Use GoRouter navigation based on user role
-          final userType = AuthService.currentUserType.toLowerCase();
-          if (userType == 'company') {
-            context.go(AppRoutes.companyDashboard);
-          } else {
-            context.go(AppRoutes.beveiligerDashboard);
-          }
+          // Check if user profile is complete
+          await _checkUserProfileAndRoute();
         } else {
           setState(() {
             _errorMessage = result.message;
@@ -638,6 +861,228 @@ class _EnhancedGlassmorphicLoginScreenState extends State<EnhancedGlassmorphicLo
             child: Text('Verzenden'),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final result = await AuthService.signInWithGoogle();
+
+      if (mounted) {
+        if (result.isSuccess) {
+          // Check if user profile is complete
+          await _checkUserProfileAndRoute();
+        } else {
+          setState(() {
+            _errorMessage = result.message;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Er is een fout opgetreden bij Google inloggen.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleMicrosoftLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final result = await AuthService.signInWithMicrosoft();
+
+      if (mounted) {
+        if (result.isSuccess) {
+          // Check if user profile is complete
+          await _checkUserProfileAndRoute();
+        } else {
+          setState(() {
+            _errorMessage = result.message;
+          });
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _checkUserProfileAndRoute() async {
+    final userType = AuthService.currentUserType.toLowerCase();
+    final userData = AuthService.currentUserData;
+    
+    // Check if user type is set
+    if (userType.isEmpty || userType == 'unknown') {
+      // Show role selection dialog
+      if (mounted) {
+        final selectedRole = await _showRoleSelectionDialog();
+        if (selectedRole != null) {
+          // TODO: Update user role in database
+          // For now, route based on selection with safe navigation
+          if (mounted) {
+            SchedulerBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                if (selectedRole == 'company') {
+                  context.go(AppRoutes.companyDashboard);
+                } else {
+                  context.go(AppRoutes.beveiligerDashboard);
+                }
+              }
+            });
+          }
+        }
+      }
+    } else {
+      // Route based on existing user type with safe navigation
+      if (mounted) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            if (userType == 'company') {
+              context.go(AppRoutes.companyDashboard);
+            } else {
+              context.go(AppRoutes.beveiligerDashboard);
+            }
+          }
+        });
+      }
+    }
+  }
+
+  Future<String?> _showRoleSelectionDialog() async {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignTokens.radiusXL),
+          ),
+          title: Text(
+            'Welkom bij SecuryFlex!',
+            style: TextStyle(
+              color: DesignTokens.colorWhite,
+              fontSize: DesignTokens.fontSizeTitle,
+              fontWeight: DesignTokens.fontWeightBold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Selecteer uw rol om door te gaan:',
+                style: TextStyle(
+                  color: DesignTokens.colorWhite.withValues(alpha: 0.9),
+                  fontSize: DesignTokens.fontSizeBody,
+                ),
+              ),
+              SizedBox(height: DesignTokens.spacingL),
+              // Beveiliger option
+              _buildRoleOption(
+                icon: Icons.security,
+                title: 'Ik ben een Beveiliger',
+                subtitle: 'Zoek opdrachten en beheer uw profiel',
+                onTap: () => Navigator.of(context).pop('guard'),
+              ),
+              SizedBox(height: DesignTokens.spacingM),
+              // Company option
+              _buildRoleOption(
+                icon: Icons.business,
+                title: 'Ik ben een Beveiligingsbedrijf',
+                subtitle: 'Plaats opdrachten en beheer uw team',
+                onTap: () => Navigator.of(context).pop('company'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRoleOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+      child: Container(
+        padding: EdgeInsets.all(DesignTokens.spacingM),
+        decoration: BoxDecoration(
+          color: DesignTokens.colorWhite.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+          border: Border.all(
+            color: DesignTokens.colorWhite.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(DesignTokens.spacingM),
+              decoration: BoxDecoration(
+                color: Color(0xFFF59E0B).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+              ),
+              child: Icon(
+                icon,
+                color: Color(0xFFF59E0B),
+                size: 32,
+              ),
+            ),
+            SizedBox(width: DesignTokens.spacingM),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: DesignTokens.colorWhite,
+                      fontSize: DesignTokens.fontSizeBody,
+                      fontWeight: DesignTokens.fontWeightBold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: DesignTokens.colorWhite.withValues(alpha: 0.7),
+                      fontSize: DesignTokens.fontSizeS,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: DesignTokens.colorWhite.withValues(alpha: 0.5),
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }

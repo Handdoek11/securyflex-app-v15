@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../unified_design_tokens.dart';
+import '../../unified_theme_system.dart';
+import '../../unified_components/premium_glass_system.dart';
 import '../../unified_status_colors.dart';
 import '../models/shift_data.dart';
 import '../utils/date_utils.dart';
@@ -120,13 +122,13 @@ class _PlanningCalendarViewState extends State<PlanningCalendarView> {
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 38,
-                  width: 38,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(24.0)),
-                    border: Border.all(color: DesignTokens.guardTextSecondary),
-                  ),
+                child: PremiumGlassContainer(
+                  intensity: GlassIntensity.subtle,
+                  elevation: GlassElevation.surface,
+                  tintColor: SecuryFlexTheme.getColorScheme(UserRole.guard).surface,
+                  enableTrustBorder: true,
+                  borderRadius: BorderRadius.circular(24.0),
+                  padding: EdgeInsets.zero,
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -143,9 +145,13 @@ class _PlanningCalendarViewState extends State<PlanningCalendarView> {
                           setListOfDate(currentMonthDate);
                         });
                       },
-                      child: Icon(
-                        Icons.keyboard_arrow_left,
-                        color: DesignTokens.guardTextSecondary,
+                      child: Container(
+                        height: 38,
+                        width: 38,
+                        child: Icon(
+                          Icons.keyboard_arrow_left,
+                          color: DesignTokens.guardTextSecondary,
+                        ),
                       ),
                     ),
                   ),
@@ -166,13 +172,13 @@ class _PlanningCalendarViewState extends State<PlanningCalendarView> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 38,
-                  width: 38,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(24.0)),
-                    border: Border.all(color: DesignTokens.guardTextSecondary),
-                  ),
+                child: PremiumGlassContainer(
+                  intensity: GlassIntensity.subtle,
+                  elevation: GlassElevation.surface,
+                  tintColor: SecuryFlexTheme.getColorScheme(UserRole.guard).surface,
+                  enableTrustBorder: true,
+                  borderRadius: BorderRadius.circular(24.0),
+                  padding: EdgeInsets.zero,
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -189,9 +195,13 @@ class _PlanningCalendarViewState extends State<PlanningCalendarView> {
                           setListOfDate(currentMonthDate);
                         });
                       },
-                      child: Icon(
-                        Icons.keyboard_arrow_right,
-                        color: DesignTokens.guardTextSecondary,
+                      child: Container(
+                        height: 38,
+                        width: 38,
+                        child: Icon(
+                          Icons.keyboard_arrow_right,
+                          color: DesignTokens.guardTextSecondary,
+                        ),
                       ),
                     ),
                   ),

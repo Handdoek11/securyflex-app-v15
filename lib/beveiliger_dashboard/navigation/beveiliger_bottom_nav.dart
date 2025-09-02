@@ -43,7 +43,7 @@ class _BeveiligerBottomNavState extends State<BeveiligerBottomNav>
             return Transform(
               transform: Matrix4.translationValues(0.0, 0.0, 0.0),
               child: PhysicalShape(
-                color: DesignTokens.colorWhite,
+                color: DesignTokens.colorGray800,
                 elevation: 16.0,
                 clipper: TabClipper(
                   radius:
@@ -190,7 +190,7 @@ class _BeveiligerBottomNavState extends State<BeveiligerBottomNav>
                           onTap: widget.addClick,
                           child: Icon(
                             Icons.add,
-                            color: DesignTokens.colorWhite,
+                            color: DesignTokens.colorGray800,
                             size: 32,
                           ),
                         ),

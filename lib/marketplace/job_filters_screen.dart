@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:securyflex_app/unified_buttons.dart';
 import 'package:securyflex_app/unified_header.dart';
 import 'package:securyflex_app/unified_theme_system.dart';
@@ -72,7 +73,7 @@ class _JobFiltersScreenState extends State<JobFiltersScreen> {
                   // Following template pattern: update state manager before closing
                   JobStateManager.updateHourlyRateRange(_values);
                   JobStateManager.updateMaxDistance(distValue);
-                  Navigator.pop(context);
+                  context.pop();
                 },
                 width: double.infinity,
                 borderRadius: 24.0,
@@ -373,7 +374,7 @@ class _JobFiltersScreenState extends State<JobFiltersScreen> {
       leading: HeaderElements.actionButton(
         icon: Icons.close,
         onPressed: () {
-          Navigator.pop(context);
+          context.pop();
         },
         userRole: UserRole.guard,
       ),

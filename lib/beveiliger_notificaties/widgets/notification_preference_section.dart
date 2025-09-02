@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:securyflex_app/core/unified_components.dart';
+import '../../unified_components/premium_glass_system.dart';
+import '../../unified_design_tokens.dart';
+import '../../unified_theme_system.dart';
 import '../models/notification_preferences.dart';
 
 /// Notification preference section widget for categorized notification settings
@@ -94,28 +97,9 @@ class _NotificationPreferenceSectionState extends State<NotificationPreferenceSe
   Widget build(BuildContext context) {
     final colorScheme = SecuryFlexTheme.getColorScheme(widget.userRole);
     
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-        child: Container(
-          padding: EdgeInsets.all(DesignTokens.spacingM),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
-            borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.25),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
+    return PremiumGlassContainer(
+      padding: EdgeInsets.all(DesignTokens.spacingM),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Main category toggle
@@ -200,9 +184,7 @@ class _NotificationPreferenceSectionState extends State<NotificationPreferenceSe
           ),
         ],
       ),
-          ),
-        ),
-      );
+    );
   }
 
   Widget _buildExpandedContent() {

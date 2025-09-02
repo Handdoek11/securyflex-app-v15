@@ -4,6 +4,7 @@ import '../../unified_buttons.dart';
 import '../../unified_card_system.dart';
 import '../../unified_theme_system.dart';
 import '../services/application_service.dart' show ApplicationData, ApplicationService, ApplicationStatus;
+import 'package:go_router/go_router.dart';
 
 /// ApplicationTracker widget voor het monitoren van sollicitatiestatus
 /// 
@@ -640,13 +641,13 @@ class _ApplicationTrackerState extends State<ApplicationTracker>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Annuleren'),
           ),
           UnifiedButton.primary(
             text: 'Intrekken',
             onPressed: () async {
-              Navigator.pop(context);
+              context.pop();
               await _withdrawApplication(application);
             },
           ),
@@ -744,7 +745,7 @@ class ApplicationDetailsDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: Text('Sluiten'),
         ),
       ],

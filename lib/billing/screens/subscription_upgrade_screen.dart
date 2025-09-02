@@ -4,6 +4,7 @@ import '../models/subscription_models.dart';
 import '../services/subscription_service.dart';
 import '../../unified_design_tokens.dart';
 import '../../auth/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 /// Subscription upgrade and tier selection screen
 /// Displays available subscription tiers with features, pricing, and allows users
@@ -661,8 +662,8 @@ class _SubscriptionUpgradeScreenState extends State<SubscriptionUpgradeScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context, tier); // Return to previous screen with result
+              context.pop(); // Close dialog
+              context.pop(tier); // Return to previous screen with result
             },
             child: const Text('Geweldig!'),
           ),
@@ -679,7 +680,7 @@ class _SubscriptionUpgradeScreenState extends State<SubscriptionUpgradeScreen> {
         content: Text(error),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('OK'),
           ),
         ],

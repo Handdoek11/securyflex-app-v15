@@ -168,11 +168,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
             // Settings/Preferences button - always visible
             HeaderElements.actionButton(
               icon: Icons.settings,
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const NotificationPreferencesScreen(),
-                ),
-              ),
+              onPressed: () => context.push('/notifications/preferences'),
+              // Original: context.push('/route-placeholder') => const NotificationPreferencesScreen(),
+              //   ),
+              // ),
               userRole: UserRole.guard,
             ),
             

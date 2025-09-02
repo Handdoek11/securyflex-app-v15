@@ -141,7 +141,7 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget>
                           : DesignTokens.colorWarning,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: DesignTokens.colorWhite,
+                        color: DesignTokens.colorGray800,
                         width: 2,
                       ),
                     ),
@@ -155,7 +155,7 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget>
                         fontFamily: DesignTokens.fontFamily,
                         fontWeight: DesignTokens.fontWeightBold,
                         fontSize: DesignTokens.fontSizeCaption,
-                        color: DesignTokens.colorWhite,
+                        color: DesignTokens.colorGray800,
                         height: 1.0,
                       ),
                       textAlign: TextAlign.center,

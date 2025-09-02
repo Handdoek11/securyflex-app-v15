@@ -190,7 +190,7 @@ class _ShiftsTabState extends State<ShiftsTab> {
                   filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.25),
@@ -272,7 +272,7 @@ class _ShiftsTabState extends State<ShiftsTab> {
                   filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.25),

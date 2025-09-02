@@ -71,6 +71,41 @@ class ComplianceStatus extends Equatable {
     );
   }
 
+  /// JSON serialization
+  factory ComplianceStatus.fromJson(Map<String, dynamic> json) {
+    return ComplianceStatus(
+      hasViolations: json['hasViolations'] as bool,
+      violations: (json['violations'] as List<dynamic>)
+          .map((violationJson) => ComplianceViolation.fromJson(violationJson as Map<String, dynamic>))
+          .toList(),
+      weeklyHours: (json['weeklyHours'] as num).toDouble(),
+      maxWeeklyHours: (json['maxWeeklyHours'] as num).toDouble(),
+      restPeriod: Duration(microseconds: json['restPeriod'] as int),
+      minRestPeriod: Duration(microseconds: json['minRestPeriod'] as int),
+      wpbrValid: json['wpbrValid'] as bool,
+      wpbrExpiryDate: json['wpbrExpiryDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['wpbrExpiryDate'] as int)
+          : null,
+      healthCertificateValid: json['healthCertificateValid'] as bool,
+      lastUpdated: DateTime.fromMillisecondsSinceEpoch(json['lastUpdated'] as int),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'hasViolations': hasViolations,
+      'violations': violations.map((violation) => violation.toJson()).toList(),
+      'weeklyHours': weeklyHours,
+      'maxWeeklyHours': maxWeeklyHours,
+      'restPeriod': restPeriod.inMicroseconds,
+      'minRestPeriod': minRestPeriod.inMicroseconds,
+      'wpbrValid': wpbrValid,
+      'wpbrExpiryDate': wpbrExpiryDate?.millisecondsSinceEpoch,
+      'healthCertificateValid': healthCertificateValid,
+      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
+    };
+  }
+
   @override
   List<Object?> get props => [
     hasViolations,
@@ -105,6 +140,31 @@ class ComplianceViolation extends Equatable {
     required this.detectedAt,
     this.additionalData,
   });
+
+  /// JSON serialization
+  factory ComplianceViolation.fromJson(Map<String, dynamic> json) {
+    return ComplianceViolation(
+      id: json['id'] as String,
+      type: ComplianceViolationType.values.firstWhere((e) => e.name == json['type']),
+      dutchDescription: json['dutchDescription'] as String,
+      dutchRecommendation: json['dutchRecommendation'] as String,
+      severity: ComplianceSeverity.values.firstWhere((e) => e.name == json['severity']),
+      detectedAt: DateTime.fromMillisecondsSinceEpoch(json['detectedAt'] as int),
+      additionalData: json['additionalData'] as Map<String, dynamic>?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.name,
+      'dutchDescription': dutchDescription,
+      'dutchRecommendation': dutchRecommendation,
+      'severity': severity.name,
+      'detectedAt': detectedAt.millisecondsSinceEpoch,
+      'additionalData': additionalData,
+    };
+  }
 
   @override
   List<Object?> get props => [

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
 import 'package:securyflex_app/unified_theme_system.dart';
-import 'package:securyflex_app/unified_components/unified_dashboard_card.dart';
+import 'package:securyflex_app/unified_components/premium_glass_system.dart';
 
 import '../models/compliance_status.dart';
 
@@ -31,45 +31,80 @@ class ComplianceStatusWidget extends StatelessWidget {
     final colorScheme = SecuryFlexTheme.getColorScheme(UserRole.guard);
     final complianceColor = _getComplianceColor();
     
-    return UnifiedDashboardCard(
-      title: 'CAO Arbeidsrecht',
-      subtitle: compliance.dutchComplianceSummary,
-      userRole: UserRole.guard,
-      variant: DashboardCardVariant.standard,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Overall compliance status
-          _buildComplianceHeader(complianceColor, colorScheme),
-          
-          const SizedBox(height: DesignTokens.spacingL),
-          
-          // Detailed compliance metrics
-          _buildComplianceMetrics(colorScheme),
-          
-          if (compliance.hasViolations) ...[
-            const SizedBox(height: DesignTokens.spacingL),
-            _buildViolationsList(colorScheme),
-          ],
-          
-          Builder(
-            builder: (context) {
-              final lowSeverityViolations = compliance.violations.where((v) => v.severity == ComplianceSeverity.low).toList();
-              if (lowSeverityViolations.isNotEmpty) {
-                return Column(
+    return PremiumGlassContainer(
+      intensity: GlassIntensity.standard,
+      elevation: GlassElevation.floating,
+      tintColor: colorScheme.primary,
+      enableTrustBorder: true,
+      child: Padding(
+        padding: const EdgeInsets.all(DesignTokens.spacingL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: DesignTokens.spacingL),
-                    _buildWarningsList(colorScheme, lowSeverityViolations),
+                    Text(
+                      'CAO Arbeidsrecht',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    if (compliance.dutchComplianceSummary.isNotEmpty)
+                      Text(
+                        compliance.dutchComplianceSummary,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                   ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          
-          const SizedBox(height: DesignTokens.spacingM),
-          _buildComplianceActions(context, colorScheme),
-        ],
+                ),
+                Icon(
+                  Icons.verified_user_outlined,
+                  color: complianceColor,
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: DesignTokens.spacingL),
+            
+            // Overall compliance status
+            _buildComplianceHeader(complianceColor, colorScheme),
+            
+            const SizedBox(height: DesignTokens.spacingL),
+            
+            // Detailed compliance metrics
+            _buildComplianceMetrics(colorScheme),
+            
+            if (compliance.hasViolations) ...[
+              const SizedBox(height: DesignTokens.spacingL),
+              _buildViolationsList(colorScheme),
+            ],
+            
+            Builder(
+              builder: (context) {
+                final lowSeverityViolations = compliance.violations.where((v) => v.severity == ComplianceSeverity.low).toList();
+                if (lowSeverityViolations.isNotEmpty) {
+                  return Column(
+                    children: [
+                      const SizedBox(height: DesignTokens.spacingL),
+                      _buildWarningsList(colorScheme, lowSeverityViolations),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            
+            const SizedBox(height: DesignTokens.spacingM),
+            _buildComplianceActions(context, colorScheme),
+          ],
+        ),
       ),
     );
   }
@@ -431,7 +466,7 @@ class ComplianceStatusWidget extends StatelessWidget {
             label: const Text('CAO Gids'),
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
-              foregroundColor: DesignTokens.colorWhite,
+              foregroundColor: colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
             ),
           ),

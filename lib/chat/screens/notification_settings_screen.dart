@@ -5,6 +5,7 @@ import '../../unified_theme_system.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_card_system.dart';
 import '../services/notification_service.dart';
+import 'package:go_router/go_router.dart';
 
 /// Notification settings screen for SecuryFlex Chat
 /// Allows users to configure push notification preferences with Dutch localization
@@ -143,7 +144,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               child: Text('OK'),
             ),
           ],
@@ -311,7 +312,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             title: 'Notificatie-instellingen',
             userRole: widget.userRole,
             leading: HeaderElements.backButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               userRole: widget.userRole,
             ),
           ),
@@ -338,7 +339,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             userRole: widget.userRole,
             titleAlignment: TextAlign.left,
             leading: HeaderElements.backButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               userRole: widget.userRole,
             ),
             actions: [

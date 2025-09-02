@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 // Import existing screens
 import '../auth/enhanced_glassmorphic_login_screen.dart';
 import '../auth/registration_screen.dart';
+import '../auth/screens/progressive_registration_screen.dart';
 import '../legal/screens/terms_acceptance_screen.dart';
 import '../beveiliger_dashboard/beveiliger_dashboard_home.dart';
 import '../company_dashboard/company_dashboard_home.dart';
@@ -44,6 +45,7 @@ import '../beveiliger_dashboard/services/performance_analytics_service.dart';
 import '../beveiliger_profiel/bloc/beveiliger_profiel_bloc.dart';
 import '../marketplace/bloc/job_bloc.dart';
 import '../marketplace/bloc/job_event.dart';
+import '../schedule/services/schedule_service_provider.dart';
 
 /// Main router configuration for SecuryFlex
 class AppRouter {
@@ -73,11 +75,11 @@ class AppRouter {
       redirect: RouteGuards.globalRedirect,
       errorBuilder: (context, state) => _buildErrorScreen(context, state),
       routes: [
-        // Authentication routes
+        // Authentication routes with premium glassmorphic animations
         GoRoute(
           path: AppRoutes.login,
           name: RouteNames.login,
-          pageBuilder: (context, state) => RouteTransitions.fadeTransition(
+          pageBuilder: (context, state) => RouteTransitions.morphingGlassTransition(
             child: const EnhancedGlassmorphicLoginScreen(),
             name: RouteNames.login,
           ),
@@ -85,10 +87,47 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.register,
           name: RouteNames.register,
-          pageBuilder: (context, state) => RouteTransitions.slideTransition(
+          pageBuilder: (context, state) => RouteTransitions.authGlassTransition(
             child: const RegistrationScreen(),
             name: RouteNames.register,
+            direction: AuthTransitionDirection.forward,
           ),
+        ),
+        // Progressive registration routes with smooth step transitions
+        GoRoute(
+          path: '/register/progressive',
+          name: 'progressive_register',
+          pageBuilder: (context, state) => RouteTransitions.authGlassTransition(
+            child: const ProgressiveRegistrationScreen(step: 'welcome'),
+            name: 'progressive_register',
+            direction: AuthTransitionDirection.forward,
+          ),
+        ),
+        // Guard registration flow
+        GoRoute(
+          path: '/register/guard/:step',
+          name: 'guard_register_step',
+          pageBuilder: (context, state) {
+            final step = state.pathParameters['step'] ?? 'welcome';
+            return RouteTransitions.progressiveStepTransition(
+              child: ProgressiveRegistrationScreen(step: step),
+              name: 'guard_register_step',
+              direction: ProgressDirection.next,
+            );
+          },
+        ),
+        // Company registration flow  
+        GoRoute(
+          path: '/register/company/:step',
+          name: 'company_register_step',
+          pageBuilder: (context, state) {
+            final step = state.pathParameters['step'] ?? 'welcome';
+            return RouteTransitions.progressiveStepTransition(
+              child: ProgressiveRegistrationScreen(step: step),
+              name: 'company_register_step',
+              direction: ProgressDirection.next,
+            );
+          },
         ),
         GoRoute(
           path: AppRoutes.termsAcceptance,
@@ -140,6 +179,150 @@ class AppRouter {
         
         // 🗑️ REMOVED: Company Shell Route - now consolidated into role-based shell above
         // All company routes are now handled by _getRoleShellBranches() method
+        // Review and workflow routes
+        GoRoute(
+          path: '/review/submit',
+          name: 'review_submit',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            return Scaffold(
+              appBar: AppBar(title: const Text('Review indienen')),
+              body: Center(
+                child: Text('Review screen - workflowId: ${extra?['workflowId']}, jobId: ${extra?['jobId']}'),
+              ),
+            );
+          },
+        ),
+        
+        // Schedule management routes
+        GoRoute(
+          path: '/schedule/shift-details/:shiftId',
+          name: 'shift_details',
+          builder: (context, state) {
+            final shiftId = state.pathParameters['shiftId']!;
+            return Scaffold(
+              appBar: AppBar(title: const Text('Shift details')),
+              body: Center(child: Text('Shift details - ID: $shiftId')),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/schedule/edit-shift/:shiftId',
+          name: 'shift_edit',
+          builder: (context, state) {
+            final shiftId = state.pathParameters['shiftId']!;
+            return Scaffold(
+              appBar: AppBar(title: const Text('Shift bewerken')),
+              body: Center(child: Text('Edit shift - ID: $shiftId')),
+            );
+          },
+        ),
+        
+        // Notification and subscription routes
+        GoRoute(
+          path: '/notifications',
+          name: 'notification_center',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Notificaties')),
+            body: const Center(child: Text('Notification center - TODO: Implement')),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.notificationPreferences,
+          name: RouteNames.notificationPreferences,
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Notificatie voorkeuren')),
+            body: const Center(child: Text('Notification preferences - TODO: Implement')),
+          ),
+        ),
+        GoRoute(
+          path: '/beveiliger/favorites',
+          name: 'favorites',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Favorieten')),
+            body: const Center(child: Text('Favorites screen - TODO: Implement')),
+          ),
+        ),
+        
+        // File preview route
+        GoRoute(
+          path: '/chat/file-preview/:fileId',
+          name: 'file_preview',
+          builder: (context, state) {
+            final fileId = state.pathParameters['fileId']!;
+            final extra = state.extra as Map<String, dynamic>?;
+            return Scaffold(
+              appBar: AppBar(title: Text(extra?['fileName'] ?? 'File Preview')),
+              body: Center(child: Text('File preview - ID: $fileId')),
+            );
+          },
+        ),
+        
+        // Company job management routes
+        GoRoute(
+          path: '/company/jobs/create',
+          name: 'company_job_create',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Vacature aanmaken')),
+            body: const Center(child: Text('Job creation form - TODO: Implement')),
+          ),
+        ),
+        GoRoute(
+          path: '/company/jobs/:jobId/edit',
+          name: 'company_job_edit',
+          builder: (context, state) {
+            final jobId = state.pathParameters['jobId']!;
+            return Scaffold(
+              appBar: AppBar(title: const Text('Vacature bewerken')),
+              body: Center(child: Text('Job edit form - Job ID: $jobId')),
+            );
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.subscriptionManagement,
+          name: RouteNames.subscriptionManagement,
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Abonnement beheer')),
+            body: const Center(child: Text('Subscription management - TODO: Implement')),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.subscriptionUpgrade,
+          name: RouteNames.subscriptionUpgrade,
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Abonnement upgraden')),
+            body: const Center(child: Text('Subscription upgrade - TODO: Implement')),
+          ),
+        ),
+        
+        // Demo and test routes
+        GoRoute(
+          path: '/demo/application-review',
+          name: 'demo_application_review',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Sollicitatie beoordelen (Demo)')),
+            body: const Center(child: Text('Application review demo - TODO: Implement')),
+          ),
+        ),
+        
+        // Schedule management routes (additional)
+        GoRoute(
+          path: '/schedule/shift-management',
+          name: 'shift_management',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Shift beheer')),
+            body: const Center(child: Text('Shift management - TODO: Implement')),
+          ),
+        ),
+        GoRoute(
+          path: '/schedule/calendar',
+          name: 'schedule_calendar',
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Planning kalender')),
+            body: const Center(child: Text('Schedule calendar - TODO: Implement')),
+          ),
+        ),
+        
         // Shared routes
         GoRoute(
           path: AppRoutes.privacy,
@@ -291,9 +474,21 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.beveiligerDashboard,
             name: RouteNames.beveiligerDashboard,
-            pageBuilder: (context, state) => NoTransitionPage(
-              child: const BeveiligerDashboardHome(),
-            ),
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final fromRegistration = extra?['fromRegistration'] == true;
+              
+              if (fromRegistration) {
+                return RouteTransitions.successCompletionTransition(
+                  child: const BeveiligerDashboardHome(),
+                  name: RouteNames.beveiligerDashboard,
+                );
+              }
+              
+              return NoTransitionPage(
+                child: const BeveiligerDashboardHome(),
+              );
+            },
           ),
         ],
       ),
@@ -324,9 +519,7 @@ class AppRouter {
             path: AppRoutes.beveiligerSchedule,
             name: RouteNames.beveiligerSchedule,
             pageBuilder: (context, state) => NoTransitionPage(
-              child: const ScheduleMainScreen(
-                userRole: UserRole.guard,
-              ),
+              child: _buildScheduleScreenWithProvider(),
             ),
           ),
         ],
@@ -386,9 +579,21 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.companyDashboard,
             name: RouteNames.companyDashboard,
-            pageBuilder: (context, state) => NoTransitionPage(
-              child: const CompanyDashboardHome(),
-            ),
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final fromRegistration = extra?['fromRegistration'] == true;
+              
+              if (fromRegistration) {
+                return RouteTransitions.successCompletionTransition(
+                  child: const CompanyDashboardHome(),
+                  name: RouteNames.companyDashboard,
+                );
+              }
+              
+              return NoTransitionPage(
+                child: const CompanyDashboardHome(),
+              );
+            },
           ),
         ],
       ),
@@ -439,5 +644,65 @@ class AppRouter {
         ],
       ),
     ];
+  }
+
+  /// Build ScheduleMainScreen with proper BLoC provider
+  static Widget _buildScheduleScreenWithProvider() {
+    return FutureBuilder<bool>(
+      future: _initializeScheduleServiceProvider(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || snapshot.data != true) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text('Fout bij laden planning module'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => _initializeScheduleServiceProvider(),
+                    child: const Text('Opnieuw proberen'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Provide ScheduleBloc to the widget tree
+        return ScheduleServiceProvider.instance.provideBlocToWidget(
+          child: const ScheduleMainScreen(
+            userRole: UserRole.guard,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Initialize ScheduleServiceProvider if not already initialized
+  static Future<bool> _initializeScheduleServiceProvider() async {
+    try {
+      if (!ScheduleServiceProvider.instance.isInitialized) {
+        // We need a BuildContext for initialization, but we don't have one here
+        // So we'll use a workaround - the context will be available when the screen is built
+        await ScheduleServiceProvider.instance.initialize(
+          context: _rootNavigatorKey.currentContext!,
+        );
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Failed to initialize ScheduleServiceProvider: $e');
+      return false;
+    }
   }
 }

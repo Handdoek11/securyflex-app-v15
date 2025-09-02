@@ -152,7 +152,7 @@ class UnifiedCard extends StatelessWidget {
 
       case UnifiedCardVariant.standard:
         return BoxDecoration(
-          color: backgroundColor ?? colorScheme.surface,
+          color: backgroundColor ?? colorScheme.surfaceContainerHighest,
           borderRadius: borderRadius ?? BorderRadius.circular(DesignTokens.radiusCard),
           boxShadow: [DesignTokens.shadowMedium],
         );

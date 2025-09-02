@@ -244,28 +244,32 @@ class _JobCompletionScreenState extends State<JobCompletionScreen> {
         ElevatedButton.icon(
           onPressed: () async {
             // Navigate to the new comprehensive review screen
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SubmitReviewScreen(
-                  workflowId: widget.workflowId,
-                  jobId: widget.jobId,
-                  revieweeId: widget.userRole == 'guard' 
-                      ? widget.workflow?.companyId ?? '' 
-                      : widget.workflow?.selectedGuardId ?? '',
-                  revieweeName: widget.userRole == 'guard'
-                      ? 'Bedrijf' // In production, fetch actual company name
-                      : 'Beveiliger', // In production, fetch actual guard name
-                  reviewerType: widget.userRole == 'guard'
-                      ? ReviewerType.guard
-                      : ReviewerType.company,
-                  userRole: widget.userRole == 'guard'
-                      ? UserRole.guard
-                      : UserRole.company,
-                  shiftDate: widget.workflow?.metadata.actualEndTime ?? widget.workflow?.updatedAt,
-                ),
-              ),
-            );
+            final result = await context.push('/review/submit', extra: {
+              'workflowId': widget.workflowId,
+              'jobId': widget.jobId,
+            });
+            // Original: Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => SubmitReviewScreen(
+            //       workflowId: widget.workflowId,
+            //       jobId: widget.jobId,
+            //       revieweeId: widget.userRole == 'guard' 
+            //           ? widget.workflow?.companyId ?? '' 
+            //           : widget.workflow?.selectedGuardId ?? '',
+            //       revieweeName: widget.userRole == 'guard'
+            //           ? 'Bedrijf' // In production, fetch actual company name
+            //           : 'Beveiliger', // In production, fetch actual guard name
+            //       reviewerType: widget.userRole == 'guard'
+            //           ? ReviewerType.guard
+            //           : ReviewerType.company,
+            //       userRole: widget.userRole == 'guard'
+            //           ? UserRole.guard
+            //           : UserRole.company,
+            //       shiftDate: widget.workflow?.metadata.actualEndTime ?? widget.workflow?.updatedAt,
+            //     ),
+            //   ),
+            // );
             
             if (result == true && mounted) {
               // Review submitted successfully

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
+import '../../unified_components/premium_glass_system.dart';
 import '../model/security_job_data.dart';
 import '../bloc/job_bloc.dart';
 import '../bloc/job_state.dart';
@@ -46,27 +47,19 @@ class OptimizedJobCard extends StatelessWidget {
           horizontal: DesignTokens.spacingM,
           vertical: DesignTokens.spacingS,
         ),
-        decoration: BoxDecoration(
-          color: _getCardColor(),
+        child: PremiumGlassContainer(
+          intensity: GlassIntensity.standard,
+          elevation: GlassElevation.floating,
+          tintColor: SecuryFlexTheme.getColorScheme(userRole).surfaceContainerHighest,
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          border: Border.all(
-            color: _getBorderColor(),
-            width: 1,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              offset: Offset(0, 2),
-              blurRadius: 8,
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          child: InkWell(
-            onTap: onTap,
+          padding: EdgeInsets.zero,
+          enableTrustBorder: true,
+          onTap: onTap,
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+            child: InkWell(
+            onTap: null, // onTap handled by PremiumGlassContainer
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             child: Padding(
               padding: const EdgeInsets.all(DesignTokens.spacingM),
@@ -99,18 +92,10 @@ class OptimizedJobCard extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 
-  Color _getCardColor() {
-    final colorScheme = SecuryFlexTheme.getColorScheme(userRole);
-    return colorScheme.surface;
-  }
-
-  Color _getBorderColor() {
-    final colorScheme = SecuryFlexTheme.getColorScheme(userRole);
-    return colorScheme.outline.withValues(alpha: 0.2);
-  }
 }
 
 /// Extracted header component - optimized to 4 levels maximum

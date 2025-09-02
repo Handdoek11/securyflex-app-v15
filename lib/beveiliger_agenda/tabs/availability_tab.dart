@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:ui' as ui;
 import 'package:securyflex_app/unified_theme_system.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
 import 'package:securyflex_app/unified_buttons.dart';
+import '../../unified_components/premium_glass_system.dart';
 // BeveiligerDashboardTheme import removed - using unified design tokens
 import '../models/shift_data.dart';
 import '../utils/date_utils.dart';
@@ -164,7 +166,7 @@ class _AvailabilityTabState extends State<AvailabilityTab> {
                   filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.25),
@@ -297,7 +299,7 @@ class _AvailabilityTabState extends State<AvailabilityTab> {
                 filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),
@@ -554,7 +556,7 @@ class _AvailabilityTabState extends State<AvailabilityTab> {
                 filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),
@@ -660,7 +662,7 @@ class _AvailabilityTabState extends State<AvailabilityTab> {
                 filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.25),
@@ -942,7 +944,7 @@ class _AvailabilityTabState extends State<AvailabilityTab> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Begrepen'),
           ),
         ],

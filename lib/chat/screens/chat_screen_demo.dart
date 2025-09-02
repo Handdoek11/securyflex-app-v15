@@ -6,6 +6,7 @@ import '../../unified_header.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 import 'enhanced_chat_screen.dart';
+import 'package:go_router/go_router.dart';
 
 /// Interactive demo showcasing the enhanced chat screen
 /// 
@@ -140,7 +141,7 @@ class _ChatScreenDemoState extends State<ChatScreenDemo>
             title: 'Chat Demo - ${_getRoleDisplayName()}',
             showNotifications: false,
             leading: HeaderElements.backButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               color: DesignTokens.colorWhite,
             ),
             actions: [
@@ -155,7 +156,7 @@ class _ChatScreenDemoState extends State<ChatScreenDemo>
             title: 'Chat Demo - ${_getRoleDisplayName()}',
             userRole: selectedRole,
             leading: HeaderElements.backButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               userRole: selectedRole,
             ),
             actions: [
@@ -677,7 +678,7 @@ class _ChatScreenDemoState extends State<ChatScreenDemo>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Sluiten'),
           ),
         ],

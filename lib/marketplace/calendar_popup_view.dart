@@ -6,6 +6,7 @@ import '../unified_theme_system.dart';
 import '../unified_card_system.dart';
 
 import 'custom_calendar.dart';
+import 'package:go_router/go_router.dart';
 
 class CalendarPopupView extends StatefulWidget {
   const CalendarPopupView(
@@ -76,7 +77,7 @@ class _CalendarPopupViewState extends State<CalendarPopupView>
                 hoverColor: Colors.transparent,
                 onTap: () {
                   if (widget.barrierDismissible) {
-                    Navigator.pop(context);
+                    context.pop();
                   }
                 },
                 child: Center(
@@ -201,7 +202,7 @@ class _CalendarPopupViewState extends State<CalendarPopupView>
                             onPressed: () {
                               try {
                                 widget.onApplyClick!(startDate!, endDate!);
-                                Navigator.pop(context);
+                                context.pop();
                               } catch (_) {}
                             },
                             size: UnifiedButtonSize.large,

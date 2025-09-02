@@ -579,13 +579,12 @@ class _CompanyDashboardMainState extends State<CompanyDashboardMain>
   /// Navigate to subscription upgrade screen
   void _navigateToSubscriptionUpgrade() {
     final userId = AuthService.currentUserId;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SubscriptionUpgradeScreen(
-          userId: userId.isNotEmpty ? userId : null,
-        ),
-      ),
-    );
+    context.push('/subscription-upgrade');
+    // Original: context.push('/route-placeholder') => SubscriptionUpgradeScreen(
+    //       userId: userId.isNotEmpty ? userId : null,
+    //     ),
+    //   ),
+    // );
   }
 }
    

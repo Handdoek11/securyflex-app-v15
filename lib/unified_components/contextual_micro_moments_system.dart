@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -453,7 +454,7 @@ class _PredictiveActionSuggestionState extends State<PredictiveActionSuggestion>
   void _dismiss() {
     _slideController.reverse().then((_) {
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
     });
   }

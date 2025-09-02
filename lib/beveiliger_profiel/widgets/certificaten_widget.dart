@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:securyflex_app/core/unified_components.dart';
@@ -71,14 +72,15 @@ class _CertificatenWidgetState extends State<CertificatenWidget> {
   }
 
   Future<void> _navigateToAddCertificate() async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => CertificateAddScreen(
-          userId: widget.userId,
-          userRole: widget.userRole,
-        ),
-      ),
-    );
+    final result = await context.push('/beveiliger/certificates/add');
+    // Original: Navigator.of(context).push<bool>(
+    //   MaterialPageRoute(
+    //     builder: (context) => CertificateAddScreen(
+    //       userId: widget.userId,
+    //       userRole: widget.userRole,
+    //     ),
+    //   ),
+    // );
 
     // Refresh certificates if new certificate was added
     if (result == true && mounted) {

@@ -512,7 +512,7 @@ class _SubscriptionStatusWidgetState extends State<SubscriptionStatusWidget> {
     }
 
     return BoxDecoration(
-      color: DesignTokens.colorWhite,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: borderColor, width: 1),
       boxShadow: [

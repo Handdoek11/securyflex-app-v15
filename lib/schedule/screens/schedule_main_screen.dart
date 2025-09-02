@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_header.dart';
@@ -7,7 +8,6 @@ import '../../unified_components/smart_tab_bar.dart';
 import '../../unified_components/unified_background_service.dart';
 import '../blocs/schedule_bloc.dart';
 import '../widgets/time_clock_widget.dart' as TimeClock;
-import '../navigation/schedule_routes.dart';
 import '../widgets/calendar/shift_calendar_widget.dart';
 import '../widgets/time_tracking/gps_status_indicator.dart' as GPS;
 import '../models/shift_model.dart';
@@ -1146,11 +1146,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
           if (widget.userRole == UnifiedTheme.UserRole.company) ...[
             ElevatedButton.icon(
               onPressed: () {
-                ScheduleRoutes.navigateToShiftManagement(
-                  context,
-                  userRole: widget.userRole,
-                  companyId: widget.companyId,
-                );
+                context.push('/schedule/shift-management');
               },
               icon: const Icon(Icons.add),
               label: const Text('Nieuwe Dienst'),
@@ -1167,6 +1163,8 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
 
   Widget _buildLoadingList() {
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(DesignTokens.spacingM),
       itemCount: 5,
       itemBuilder: (context, index) {
@@ -1215,11 +1213,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
 
     return FloatingActionButton(
       onPressed: () {
-        ScheduleRoutes.navigateToShiftManagement(
-          context,
-          userRole: widget.userRole,
-          companyId: widget.companyId,
-        );
+        context.push('/schedule/shift-management');
       },
       backgroundColor: _getPrimaryColor(),
       foregroundColor: _getOnPrimaryColor(),
@@ -1245,7 +1239,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
               leading: const Icon(Icons.settings),
               title: const Text('Instellingen'),
               onTap: () {
-                Navigator.pop(context);
+                context.pop();
                 // Navigate to settings
               },
             ),
@@ -1253,7 +1247,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
               leading: const Icon(Icons.help),
               title: const Text('Help'),
               onTap: () {
-                Navigator.pop(context);
+                context.pop();
                 // Show help
               },
             ),
@@ -1261,7 +1255,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
               leading: const Icon(Icons.feedback),
               title: const Text('Feedback'),
               onTap: () {
-                Navigator.pop(context);
+                context.pop();
                 // Show feedback form
               },
             ),
@@ -1332,25 +1326,27 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
   }
 
   void _handleShiftTap(Shift shift) {
-    Navigator.pushNamed(
-      context,
-      ScheduleRoutes.shiftDetails,
-      arguments: {
-        'shiftId': shift.id,
-        'userRole': widget.userRole,
-      },
-    );
+    context.push('/schedule/shift-details/${shift.id}');
+    // Original: Navigator.pushNamed(
+    //   context,
+    //   ScheduleRoutes.shiftDetails,
+    //   arguments: {
+    //     'shiftId': shift.id,
+    //     'userRole': widget.userRole,
+    //   },
+    // );
   }
 
   void _handleEditShift(Shift shift) {
-    Navigator.pushNamed(
-      context,
-      ScheduleRoutes.editShift,
-      arguments: {
-        'shiftId': shift.id,
-        'userRole': widget.userRole,
-      },
-    );
+    context.push('/schedule/edit-shift/${shift.id}');
+    // Original: Navigator.pushNamed(
+    //   context,
+    //   ScheduleRoutes.editShift,
+    //   arguments: {
+    //     'shiftId': shift.id,
+    //     'userRole': widget.userRole,
+    //   },
+    // );
   }
 
   void _handleDateSelected(DateTime date) {
@@ -1462,11 +1458,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
             icon: Icons.event_busy,
             color: DesignTokens.colorWarning,
             onTap: () {
-              ScheduleRoutes.navigateToCalendar(
-                context,
-                userRole: widget.userRole,
-                guardId: widget.guardId,
-              );
+              context.push('/schedule/calendar');
             },
           ),
           QuickAction(
@@ -1486,11 +1478,7 @@ class _ScheduleMainScreenState extends State<ScheduleMainScreen>
             icon: Icons.add_circle,
             color: DesignTokens.colorSuccess,
             onTap: () {
-              ScheduleRoutes.navigateToShiftManagement(
-                context,
-                userRole: widget.userRole,
-                companyId: widget.companyId,
-              );
+              context.push('/schedule/shift-management'); // userRole: widget.userRole, companyId: widget.companyId
             },
           ),
           QuickAction(

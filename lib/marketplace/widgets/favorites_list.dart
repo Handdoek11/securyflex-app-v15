@@ -7,6 +7,7 @@ import '../services/favorites_service.dart';
 import '../model/security_job_data.dart';
 import '../widgets/job_card.dart';
 import '../models/enhanced_job_models.dart';
+import 'package:go_router/go_router.dart';
 
 /// FavoritesList widget met categorisatie en Nederlandse localisatie
 /// 
@@ -634,13 +635,13 @@ class _FavoritesListState extends State<FavoritesList>
         content: Text('Weet je zeker dat je alle favoriete opdrachten wilt verwijderen?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Annuleren'),
           ),
           UnifiedButton.primary(
             text: 'Wissen',
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               FavoritesService().clearFavorites();
               widget.onFavoritesChanged?.call();
             },

@@ -39,6 +39,33 @@ class EnhancedDashboardData extends Equatable {
     );
   }
 
+  /// JSON serialization
+  factory EnhancedDashboardData.fromJson(Map<String, dynamic> json) {
+    return EnhancedDashboardData(
+      earnings: EnhancedEarningsData.fromJson(json['earnings'] as Map<String, dynamic>),
+      shifts: (json['shifts'] as List<dynamic>)
+          .map((shiftJson) => EnhancedShiftData.fromJson(shiftJson as Map<String, dynamic>))
+          .toList(),
+      compliance: ComplianceStatus.fromJson(json['compliance'] as Map<String, dynamic>),
+      weather: json['weather'] != null
+          ? WeatherData.fromJson(json['weather'] as Map<String, dynamic>)
+          : null,
+      performance: PerformanceAnalytics.fromJson(json['performance'] as Map<String, dynamic>),
+      lastUpdated: DateTime.fromMillisecondsSinceEpoch(json['lastUpdated'] as int),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'earnings': earnings.toJson(),
+      'shifts': shifts.map((shift) => shift.toJson()).toList(),
+      'compliance': compliance.toJson(),
+      'weather': weather?.toJson(),
+      'performance': performance.toJson(),
+      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
+    };
+  }
+
   @override
   List<Object?> get props => [
     earnings,
@@ -139,6 +166,47 @@ class EnhancedEarningsData extends Equatable {
       dutchFormattedMonth: dutchFormattedMonth ?? this.dutchFormattedMonth,
       lastCalculated: lastCalculated ?? this.lastCalculated,
     );
+  }
+
+  /// JSON serialization
+  factory EnhancedEarningsData.fromJson(Map<String, dynamic> json) {
+    return EnhancedEarningsData(
+      totalToday: (json['totalToday'] as num).toDouble(),
+      totalWeek: (json['totalWeek'] as num).toDouble(),
+      totalMonth: (json['totalMonth'] as num).toDouble(),
+      hourlyRate: (json['hourlyRate'] as num).toDouble(),
+      hoursWorkedToday: (json['hoursWorkedToday'] as num).toDouble(),
+      hoursWorkedWeek: (json['hoursWorkedWeek'] as num).toDouble(),
+      overtimeHours: (json['overtimeHours'] as num).toDouble(),
+      overtimeRate: (json['overtimeRate'] as num).toDouble(),
+      vakantiegeld: (json['vakantiegeld'] as num).toDouble(),
+      btwAmount: (json['btwAmount'] as num).toDouble(),
+      isFreelance: json['isFreelance'] as bool,
+      dutchFormattedToday: json['dutchFormattedToday'] as String,
+      dutchFormattedWeek: json['dutchFormattedWeek'] as String,
+      dutchFormattedMonth: json['dutchFormattedMonth'] as String,
+      lastCalculated: DateTime.fromMillisecondsSinceEpoch(json['lastCalculated'] as int),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'totalToday': totalToday,
+      'totalWeek': totalWeek,
+      'totalMonth': totalMonth,
+      'hourlyRate': hourlyRate,
+      'hoursWorkedToday': hoursWorkedToday,
+      'hoursWorkedWeek': hoursWorkedWeek,
+      'overtimeHours': overtimeHours,
+      'overtimeRate': overtimeRate,
+      'vakantiegeld': vakantiegeld,
+      'btwAmount': btwAmount,
+      'isFreelance': isFreelance,
+      'dutchFormattedToday': dutchFormattedToday,
+      'dutchFormattedWeek': dutchFormattedWeek,
+      'dutchFormattedMonth': dutchFormattedMonth,
+      'lastCalculated': lastCalculated.millisecondsSinceEpoch,
+    };
   }
 
   @override
@@ -294,6 +362,67 @@ class EnhancedShiftData extends Equatable {
       checkedOutAt: checkedOutAt ?? this.checkedOutAt,
       dutchStatusText: dutchStatusText ?? this.dutchStatusText,
     );
+  }
+
+  /// JSON serialization
+  factory EnhancedShiftData.fromJson(Map<String, dynamic> json) {
+    return EnhancedShiftData(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      companyName: json['companyName'] as String,
+      companyId: json['companyId'] as String,
+      startTime: DateTime.fromMillisecondsSinceEpoch(json['startTime'] as int),
+      endTime: DateTime.fromMillisecondsSinceEpoch(json['endTime'] as int),
+      location: json['location'] as String,
+      address: json['address'] as String,
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      hourlyRate: (json['hourlyRate'] as num).toDouble(),
+      status: ShiftStatus.values.firstWhere((e) => e.name == json['status']),
+      type: ShiftType.values.firstWhere((e) => e.name == json['type']),
+      specialInstructions: json['specialInstructions'] as String?,
+      requiredCertifications: List<String>.from(json['requiredCertifications'] ?? []),
+      isOutdoor: json['isOutdoor'] as bool,
+      requiresUniform: json['requiresUniform'] as bool,
+      emergencyResponse: json['emergencyResponse'] as bool,
+      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
+      feedback: json['feedback'] as String?,
+      checkedInAt: json['checkedInAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['checkedInAt'] as int)
+          : null,
+      checkedOutAt: json['checkedOutAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['checkedOutAt'] as int)
+          : null,
+      dutchStatusText: json['dutchStatusText'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'companyName': companyName,
+      'companyId': companyId,
+      'startTime': startTime.millisecondsSinceEpoch,
+      'endTime': endTime.millisecondsSinceEpoch,
+      'location': location,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+      'hourlyRate': hourlyRate,
+      'status': status.name,
+      'type': type.name,
+      'specialInstructions': specialInstructions,
+      'requiredCertifications': requiredCertifications,
+      'isOutdoor': isOutdoor,
+      'requiresUniform': requiresUniform,
+      'emergencyResponse': emergencyResponse,
+      'rating': rating,
+      'feedback': feedback,
+      'checkedInAt': checkedInAt?.millisecondsSinceEpoch,
+      'checkedOutAt': checkedOutAt?.millisecondsSinceEpoch,
+      'dutchStatusText': dutchStatusText,
+    };
   }
 
   @override

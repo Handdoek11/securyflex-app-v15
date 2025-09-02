@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:securyflex_app/unified_design_tokens.dart';
+import 'package:go_router/go_router.dart';
 
 /// Expandable text widget with "Toon meer"/"Toon minder" functionality
 /// Follows SecuryFlex unified design system patterns
@@ -117,7 +118,7 @@ class _ExpandableTextState extends State<ExpandableText>
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               child: Text(
                 'Sluiten',
                 style: TextStyle(
@@ -241,7 +242,7 @@ class ExpandableAddress extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               child: Text(
                 'Sluiten',
                 style: TextStyle(

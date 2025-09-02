@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
 import '../../unified_components/premium_typography_system.dart';
@@ -116,11 +117,12 @@ class ShiftsManagementSection extends StatelessWidget {
       enableTrustBorder: true,
       onTap: () {
         // Navigate to shift details
-        Navigator.pushNamed(
-          context, 
-          '/shift-details', 
-          arguments: {'shiftId': shift.id, 'shift': shift}
-        );
+        context.push('/schedule/shift-details/${shift.id}');
+        // Original: Navigator.pushNamed(
+        //   context, 
+        //   '/shift-details', 
+        //   arguments: {'shiftId': shift.id, 'shift': shift}
+        // );
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

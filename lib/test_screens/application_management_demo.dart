@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:securyflex_app/unified_theme_system.dart';
 import 'package:securyflex_app/unified_header.dart';
 import 'package:securyflex_app/unified_buttons.dart';
@@ -184,19 +185,17 @@ class ApplicationManagementDemo extends StatelessWidget {
       requiredSkills: ['Toegangscontrole'],
     );
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ApplicationReviewScreen(jobData: demoJob),
-      ),
-    );
+    context.push('/demo/application-review');
+    // Original: context.push('/route-placeholder') => ApplicationReviewScreen(jobData: demoJob),
+    //   ),
+    // );
   }
 
   void _showGuardApplications(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MyApplicationsScreen(),
-      ),
-    );
+    context.push('/beveiliger/applications');
+    // Original: context.push('/route-placeholder') => MyApplicationsScreen(),
+    //   ),
+    // );
   }
 
   void _showRegistrationInfo(BuildContext context) {

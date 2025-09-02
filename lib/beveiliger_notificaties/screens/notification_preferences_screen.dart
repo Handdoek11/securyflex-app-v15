@@ -7,6 +7,7 @@ import 'package:securyflex_app/company_dashboard/models/analytics_data_models.da
 import '../models/notification_preferences.dart';
 import '../widgets/notification_preference_section.dart';
 import '../services/notification_preferences_service.dart';
+import 'package:go_router/go_router.dart';
 
 /// Comprehensive notification preferences screen for SecuryFlex guards
 /// 
@@ -223,13 +224,13 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         content: Text('Je hebt niet-opgeslagen wijzigingen. Wil je deze opslaan?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => context.pop(false),
             child: Text('Verwerpen'),
           ),
           TextButton(
             onPressed: () async {
               await _savePreferences();
-              if (mounted) Navigator.pop(context, true);
+              if (mounted) context.pop(true);
             },
             child: Text('Opslaan'),
           ),
@@ -256,7 +257,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
                 userRole: UserRole.guard,
                 titleAlignment: TextAlign.center,
                 leading: HeaderElements.backButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                   userRole: UserRole.guard,
                 ),
               ),
@@ -300,7 +301,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
                 userRole: UserRole.guard,
                 titleAlignment: TextAlign.center,
                 leading: HeaderElements.backButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                   userRole: UserRole.guard,
                 ),
               ),
@@ -357,7 +358,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         if (didPop) return;
         final shouldPop = await _showUnsavedChangesDialog();
         if (shouldPop && mounted) {
-          Navigator.pop(context);
+          context.pop();
         }
       },
       child: SafeArea(
@@ -374,7 +375,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
                   onPressed: () async {
                     final shouldPop = await _showUnsavedChangesDialog();
                     if (shouldPop && mounted) {
-                      Navigator.pop(context);
+                      context.pop();
                     }
                   },
                   userRole: UserRole.guard,
@@ -510,7 +511,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         child: Container(
           padding: EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.25),
@@ -621,7 +622,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         child: Container(
           padding: EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.25),
@@ -819,7 +820,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         child: Container(
           padding: EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.25),
@@ -960,7 +961,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         child: Container(
           padding: EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.25),
@@ -1078,7 +1079,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Begrepen'),
           ),
         ],

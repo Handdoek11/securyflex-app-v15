@@ -700,7 +700,7 @@ class _ProfielEditScreenState extends State<ProfielEditScreen> {
                                       ? colorScheme.primary.withValues(alpha: 0.2)
                                       : isDisabled
                                           ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
-                                          : Colors.white.withValues(alpha: 0.08),
+                                          : Colors.transparent,
                                   borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                                   border: Border.all(
                                     color: isSelected
@@ -1021,7 +1021,7 @@ class _ProfielEditScreenState extends State<ProfielEditScreen> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (isWPBR ? colorScheme.tertiary : colorScheme.primary).withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.08),
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                     border: Border.all(
                       color: isSelected

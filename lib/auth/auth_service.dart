@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../config/environment_config.dart';
+import '../config/google_signin_config.dart';
+import '../config/microsoft_config.dart';
 
 /// Password validation result with detailed feedback
 class PasswordValidationResult {
@@ -432,9 +435,22 @@ class AuthService {
               .doc(user.uid)
               .set(userData);
 
+          // Auto-login the user after successful registration
+          _isLoggedIn = true;
+          _currentUserId = user.uid;
+          _currentUserName = name;
+          _currentUserType = userType;
+          _currentUserData = userData;
+
           return AuthResult.success(
-            'Account succesvol aangemaakt! Controleer uw e-mail voor verificatie.',
-            data: {'requiresEmailVerification': true, 'email': email},
+            'Account succesvol aangemaakt! Welkom bij SecuryFlex.',
+            data: {
+              'requiresEmailVerification': true, 
+              'email': email,
+              'autoLoggedIn': true,
+              'userType': userType,
+              'userId': user.uid,
+            },
           );
         }
       } else {
@@ -1349,7 +1365,377 @@ class AuthService {
       debugPrint('Terms accepted for user: $userId');
     } catch (e) {
       debugPrint('Error updating terms acceptance: $e');
-      throw e;
+      rethrow;
     }
+  }
+
+  // SOCIAL LOGIN METHODS
+
+  /// Google Sign-In authentication (v7.x implementation - Mobile only)
+  static Future<AuthResult> signInWithGoogle() async {
+    // Check if this is web - not supported
+    if (kIsWeb) {
+      debugPrint('🔐 Google Sign-In not supported on web platform');
+      return AuthResult.error(
+        'google-signin-web-not-supported',
+        'Google Sign-In is alleen beschikbaar op mobiele apparaten. Gebruik email/wachtwoord login op web.'
+      );
+    }
+    try {
+      debugPrint('🔐 Starting Google Sign-In v7.x');
+      
+      // Initialize Google Sign-In
+      await GoogleSignInConfig.initialize();
+      final GoogleSignIn googleSignIn = GoogleSignInConfig.googleSignIn;
+      
+      // Perform the sign-in process
+      GoogleSignInAccount? account;
+      
+      try {
+        // Method 1: Mobile authentication
+        debugPrint('🔐 Mobile: Attempting interactive Google authentication');
+        if (googleSignIn.supportsAuthenticate()) {
+          account = await googleSignIn.authenticate();
+          debugPrint('🔐 Got user from authenticate(): ${account.email}');
+        } else {
+          debugPrint('🔐 authenticate() not supported on this platform');
+        }
+      } catch (e) {
+        debugPrint('🔐 Mobile authentication failed: $e');
+      }
+      
+      // Method 2: Try lightweight authentication for existing user
+      if (account == null) {
+        try {
+          debugPrint('🔐 Trying lightweight authentication for existing user');
+          account = await googleSignIn.attemptLightweightAuthentication();
+          if (account != null) {
+            debugPrint('🔐 Got existing user from attemptLightweightAuthentication(): ${account.email}');
+          } else {
+            debugPrint('🔐 No existing user found via lightweight authentication');
+          }
+        } catch (e) {
+          debugPrint('🔐 attemptLightweightAuthentication failed: $e');
+        }
+      }
+      
+      if (account == null) {
+        return AuthResult.error(
+          'google-signin-mobile-failed',
+          'Google Sign-In mislukt op mobiel. Probeer opnieuw of gebruik email/wachtwoord login.'
+        );
+      }
+      
+      debugPrint('🔐 Google account obtained: ${account.email}');
+      
+      // Get authentication details
+      try {
+        final GoogleSignInAuthentication auth = account.authentication;
+        final String? idToken = auth.idToken;
+        
+        if (idToken == null) {
+          return AuthResult.error(
+            'google-signin-no-token',
+            'Kon geen ID token krijgen van Google'
+          );
+        }
+        
+        debugPrint('🔐 Got ID token successfully');
+        
+        // Create Firebase credential
+        final credential = GoogleAuthProvider.credential(idToken: idToken);
+        
+        // Sign in to Firebase
+        final UserCredential userCredential = await _auth.signInWithCredential(credential);
+        
+        if (userCredential.user != null) {
+          final user = userCredential.user!;
+          
+          // Load or create user data
+          await _loadOrCreateSocialUser(
+            user.uid,
+            user.email ?? account.email,
+            user.displayName ?? account.displayName ?? 'Google User',
+            'google',
+          );
+          
+          // Initialize session
+          _initializeSession(user.uid);
+          
+          debugPrint('🔐 Google Sign-In completed successfully');
+          return AuthResult.success('Succesvol ingelogd met Google');
+        }
+        
+        return AuthResult.error('google-firebase-failed', 'Firebase authenticatie mislukt');
+        
+      } catch (authError) {
+        debugPrint('🔐 Authentication error: $authError');
+        return AuthResult.error(
+          'google-auth-failed',
+          'Google authenticatie mislukt: ${authError.toString()}'
+        );
+      }
+      
+    } catch (e) {
+      debugPrint('🔐 Google Sign-In error: $e');
+      
+      if (e.toString().contains('network')) {
+        return AuthResult.error('network-error', 'Netwerkfout. Controleer uw internetverbinding.');
+      }
+      
+      return AuthResult.error('google-signin-error', 'Google Sign-In fout: ${e.toString()}');
+    }
+  }
+
+  /// Microsoft SSO authentication using Azure AD
+  static Future<AuthResult> signInWithMicrosoft() async {
+    try {
+      // Check if Microsoft SSO is configured
+      if (!MicrosoftConfig.isConfigured()) {
+        return AuthResult.error(
+          'microsoft-not-configured',
+          'Microsoft SSO is niet geconfigureerd. Neem contact op met de beheerder.'
+        );
+      }
+
+      // Development mock authentication
+      if (kDebugMode) {
+        debugPrint('Microsoft: Using development mock authentication');
+        
+        // Simulate authentication delay
+        await Future.delayed(Duration(milliseconds: 1000));
+        
+        // Mock successful authentication
+        final userInfo = await _getMicrosoftUserInfo('mock-access-token');
+        if (userInfo == null) {
+          return AuthResult.error('microsoft-userinfo-failed', 'Kon gebruikersinformatie niet ophalen van Microsoft');
+        }
+
+        final email = userInfo['mail'] ?? userInfo['userPrincipalName'] ?? '';
+        final displayName = userInfo['displayName'] ?? 'Microsoft User';
+        final microsoftId = userInfo['id'] ?? '';
+
+        if (email.isEmpty || microsoftId.isEmpty) {
+          return AuthResult.error('microsoft-invalid-user', 'Ongeldige gebruikersgegevens van Microsoft');
+        }
+
+        // Create or load user with Microsoft ID
+        final userId = 'microsoft_$microsoftId';
+        await _loadOrCreateSocialUser(
+          userId,
+          email,
+          displayName,
+          'microsoft',
+        );
+
+        // Initialize session
+        _initializeSession(userId);
+
+        return AuthResult.success('Succesvol ingelogd met Microsoft (Demo)');
+      }
+
+      // Production MSAL authentication (temporarily disabled for stability)
+      return AuthResult.error(
+        'microsoft-production-not-ready',
+        'Microsoft SSO productie-modus is nog niet geconfigureerd. Development modus werkt wel.'
+      );
+
+    } catch (e) {
+      debugPrint('Microsoft SSO error: $e');
+      
+      if (e.toString().contains('user_cancel')) {
+        return AuthResult.error('microsoft-cancelled', 'Microsoft login geannuleerd');
+      }
+      
+      return AuthResult.error('microsoft-error', 'Microsoft SSO fout: ${e.toString()}');
+    }
+  }
+
+  /// Get user information from Microsoft Graph API
+  static Future<Map<String, dynamic>?> _getMicrosoftUserInfo(String accessToken) async {
+    try {
+      // Use MSAL Flutter's built-in method if available, or make HTTP request
+      // For now, we'll make a simple HTTP request to Graph API
+      final response = await _makeGraphApiRequest(accessToken, '/me');
+      return response;
+    } catch (e) {
+      debugPrint('Error fetching Microsoft user info: $e');
+      return null;
+    }
+  }
+
+  /// Make request to Microsoft Graph API
+  static Future<Map<String, dynamic>?> _makeGraphApiRequest(String accessToken, String endpoint) async {
+    try {
+      // For now we'll use mock data for development
+      // final uri = Uri.parse('${MicrosoftConfig.graphApiUrl}$endpoint');
+      
+      // For development, use mock data until Graph API is properly set up
+      if (kDebugMode) {
+        // Mock successful response for development
+        await Future.delayed(Duration(milliseconds: 500)); // Simulate network delay
+        return {
+          'id': 'mock-microsoft-id-${DateTime.now().millisecondsSinceEpoch}',
+          'displayName': 'Microsoft Gebruiker (Demo)',
+          'mail': 'demo.user@company.com',
+          'userPrincipalName': 'demo.user@company.com',
+          'jobTitle': 'Security Professional',
+          'companyName': 'Demo Company BV',
+          'preferredLanguage': 'nl-NL',
+        };
+      }
+      
+      // Production implementation with actual HTTP request
+      // Uncomment and configure when ready for production:
+      /*
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        debugPrint('Microsoft Graph API response: ${data.keys}');
+        return data;
+      } else {
+        debugPrint('Graph API error: ${response.statusCode} ${response.body}');
+        return null;
+      }
+      */
+      
+      return null; // Return null for production until implemented
+      
+    } catch (e) {
+      debugPrint('Graph API request error: $e');
+      return null;
+    }
+  }
+
+  /// Load or create user data for social login users
+  static Future<void> _loadOrCreateSocialUser(String uid, String email, String name, String provider) async {
+    try {
+      final DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (userDoc.exists) {
+        // User exists, load data
+        final userData = userDoc.data() as Map<String, dynamic>;
+        _isLoggedIn = true;
+        _currentUserId = uid;
+        _currentUserType = userData['userType'] ?? '';
+        _currentUserName = userData['name'] ?? name;
+        _currentUserData = userData;
+        
+        // Cache terms acceptance status
+        final acceptedVersion = userData['termsVersion'] as String?;
+        final termsAccepted = userData['termsAccepted'] as bool? ?? false;
+        final hasAccepted = termsAccepted && acceptedVersion == _currentTermsVersion;
+        
+        final cacheKey = '${uid}_$_currentTermsVersion';
+        _termsAcceptanceCache[cacheKey] = hasAccepted;
+        
+        debugPrint('Social login: existing user loaded for $uid');
+      } else {
+        // Create new user document
+        final newUserData = {
+          'email': email,
+          'name': name,
+          'userType': '', // Will be set by role selection
+          'provider': provider,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'termsAccepted': false,
+          'termsVersion': '',
+        };
+        
+        await _firestore.collection('users').doc(uid).set(newUserData);
+        
+        // Set current user data
+        _isLoggedIn = true;
+        _currentUserId = uid;
+        _currentUserType = ''; // Will trigger role selection
+        _currentUserName = name;
+        _currentUserData = {
+          'email': email,
+          'name': name,
+          'userType': '',
+          'provider': provider,
+          'createdAt': DateTime.now().toIso8601String(),
+        };
+        
+        debugPrint('Social login: new user created for $uid');
+      }
+    } catch (e) {
+      debugPrint('Error loading/creating social user: $e');
+      rethrow;
+    }
+  }
+
+  /// Update user role (for progressive profiling)
+  static Future<AuthResult> updateUserRole(String userType) async {
+    try {
+      if (_currentUserId.isEmpty) {
+        return AuthResult.error('no-user', 'Geen gebruiker ingelogd');
+      }
+
+      await _firestore.collection('users').doc(_currentUserId).update({
+        'userType': userType,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Update current user data
+      _currentUserType = userType;
+      _currentUserData['userType'] = userType;
+
+      debugPrint('User role updated to: $userType');
+      return AuthResult.success('Gebruikersrol bijgewerkt');
+
+    } catch (e) {
+      debugPrint('Error updating user role: $e');
+      return AuthResult.error('update-role-failed', 'Kon gebruikersrol niet bijwerken');
+    }
+  }
+
+  /// Sign out from all providers
+  static Future<void> signOutAll() async {
+    try {
+      await _auth.signOut();
+      
+      // Sign out from Google Sign-In v7.x
+      try {
+        await GoogleSignIn.instance.signOut();
+        debugPrint('🔐 Google Sign-In signed out successfully');
+      } catch (e) {
+        debugPrint('🔐 Google Sign-In sign out error: $e');
+      }
+      
+    } catch (e) {
+      debugPrint('Sign out error: $e');
+    } finally {
+      // Clear session data
+      if (_currentUserId.isNotEmpty) {
+        _invalidateSession(_currentUserId);
+      }
+      
+      _isLoggedIn = false;
+      _currentUserType = '';
+      _currentUserName = '';
+      _currentUserId = '';
+      _currentUserData = {};
+      _termsAcceptanceCache.clear();
+    }
+  }
+
+  /// Update terms acceptance cache
+  static void updateTermsAcceptanceCache(String userId, bool accepted) {
+    final cacheKey = '${userId}_$_currentTermsVersion';
+    _termsAcceptanceCache[cacheKey] = accepted;
+    debugPrint('Terms cache updated for $userId: $accepted');
   }
 }

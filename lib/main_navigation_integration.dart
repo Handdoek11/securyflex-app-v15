@@ -241,7 +241,7 @@ class PrivacyNavigationIntegration {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
               context.go(AppRoutes.privacy);
             },
             child: const Text('Bekijk Details'),
@@ -259,7 +259,7 @@ class PrivacyNavigationIntegration {
                 consentText: 'Gebruiker heeft toestemming gegeven voor profiel gegevens verwerking',
               );
               
-              Navigator.of(context).pop();
+              context.pop();
             },
             child: const Text('Akkoord'),
           ),
@@ -401,7 +401,7 @@ class _GDPRComplianceStatusWidgetState extends State<GDPRComplianceStatusWidget>
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/privacy-dashboard'),
+              onPressed: () => context.push('/privacy-dashboard'),
               child: const Text('Privacy Dashboard'),
             ),
           ],

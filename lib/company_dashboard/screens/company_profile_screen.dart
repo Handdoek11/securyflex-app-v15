@@ -270,12 +270,11 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen>
   /// Navigate to subscription management screen
   void _navigateToSubscriptionManagement() {
     final userId = AuthService.currentUserId;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SubscriptionManagementScreen(
-          userId: userId.isNotEmpty ? userId : null,
-        ),
-      ),
-    );
+    context.push('/subscription-management');
+    // Original: context.push('/route-placeholder') => SubscriptionManagementScreen(
+    //       userId: userId.isNotEmpty ? userId : null,
+    //     ),
+    //   ),
+    // );
   }
 }

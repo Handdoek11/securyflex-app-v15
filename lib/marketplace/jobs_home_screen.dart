@@ -14,6 +14,7 @@ import 'package:securyflex_app/unified_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'job_filters_screen.dart';
 
 class JobsHomeScreen extends StatefulWidget {
@@ -586,13 +587,7 @@ class _JobsHomeScreenState extends State<JobsHomeScreen>
                     onTap: () async {
                       FocusScope.of(context).requestFocus(FocusNode());
                       // Following template pattern: await navigation and refresh data
-                      await Navigator.push<dynamic>(
-                        context,
-                        MaterialPageRoute<dynamic>(
-                          builder: (BuildContext context) => JobFiltersScreen(),
-                          fullscreenDialog: true,
-                        ),
-                      );
+                      await context.push('/job-filters'); // Converted from Navigator.push to GoRouter
                       // Refresh data after returning from filters
                       setState(() {
                         jobList = JobStateManager.filteredJobs;
@@ -669,12 +664,13 @@ class _JobsHomeScreenState extends State<JobsHomeScreen>
                   ? Icons.favorite_border
                   : Icons.favorite,
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FavoritesScreen(),
-                  ),
-                );
+                context.push('/beveiliger/favorites');
+                // Original: Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => const FavoritesScreen(),
+                //   ),
+                // );
               },
               userRole: UserRole.guard,
             );
@@ -683,16 +679,7 @@ class _JobsHomeScreenState extends State<JobsHomeScreen>
         HeaderElements.actionButton(
           icon: Icons.account_circle,
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                // TODO: Replace with new profile screen once beveiliger_profiel module is rebuilt
-                builder: (context) => const Scaffold(
-                  body: Center(child: Text('Profiel komt binnenkort beschikbaar')),
-                  // BeveiligerProfielScreen(animationController: animationController),
-                ),
-              ),
-            );
+            context.push('/beveiliger/profile');
           },
           userRole: UserRole.guard,
         ),

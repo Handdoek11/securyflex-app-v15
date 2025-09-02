@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
@@ -400,7 +401,7 @@ class UnifiedMessageBubble extends StatelessWidget {
         content: Text(detailedInfo),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('OK'),
           ),
         ],

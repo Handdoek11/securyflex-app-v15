@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../unified_design_tokens.dart';
 import '../../unified_theme_system.dart';
+import '../../unified_components/premium_glass_system.dart';
 import '../../company_dashboard/models/job_image_data.dart';
 import '../model/security_job_data.dart';
 import 'optimized_job_card.dart';
@@ -195,27 +196,16 @@ class JobCardWithImages extends StatelessWidget {
           horizontal: DesignTokens.spacingM,
           vertical: DesignTokens.spacingS,
         ),
-        decoration: BoxDecoration(
-          color: _getCardColor(),
+        child: PremiumGlassContainer(
+          intensity: GlassIntensity.standard,
+          elevation: GlassElevation.floating,
+          tintColor: SecuryFlexTheme.getColorScheme(userRole).surfaceContainerHighest,
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          border: Border.all(
-            color: _getBorderColor(),
-            width: 1,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              offset: Offset(0, 2),
-              blurRadius: 8,
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          child: InkWell(
-            onTap: onTap,
+          padding: EdgeInsets.zero,
+          enableTrustBorder: true,
+          onTap: onTap,
+          child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,15 +396,6 @@ class JobCardWithImages extends StatelessWidget {
     return 'Geverifieerd';
   }
 
-  Color _getCardColor() {
-    final colorScheme = SecuryFlexTheme.getColorScheme(userRole);
-    return colorScheme.surface;
-  }
-
-  Color _getBorderColor() {
-    final colorScheme = SecuryFlexTheme.getColorScheme(userRole);
-    return colorScheme.outline.withValues(alpha: 0.2);
-  }
   
   Widget _buildContextSpecificContent() {
     switch (context) {
